@@ -59,6 +59,7 @@ Imports:
     vctrs,
     wavacore
 Suggests:
+    curl,
     RSelenium,
     rnoaa,
     testthat,
