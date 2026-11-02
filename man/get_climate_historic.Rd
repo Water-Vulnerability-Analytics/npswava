@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_climate_historic.R
 \name{get_climate_historic}
 \alias{get_climate_historic}
-\title{Download and tidy historic GridMET climate for points or polygons}
+\title{Download daily historical GridMET climate for points or polygons}
 \usage{
 get_climate_historic(
   sf,
@@ -15,57 +15,77 @@ get_climate_historic(
 )
 }
 \arguments{
-\item{sf}{An `sf` object of AOIs: `POLYGON`/`MULTIPOLYGON` or `POINT`.}
+\item{sf}{sf object. The areas of interest, all polygons/multipolygons or
+all points. Stops with an error for other geometry types. Required.}
 
-\item{col_name}{Bare column name in `sf` used as an identifier; carried through
-to the output (restored from a temporary internal name).}
+\item{col_name}{Column name, bare or as a string. The column of \code{sf} that
+identifies each feature; it is kept in the output under the same name.
+Required.}
 
-\item{start, end}{Character dates `"YYYY-MM-DD"` defining the inclusive time
-range to download. Defaults to `"1979-01-01"` and `"2023-12-31"`.}
+\item{start}{String, \code{"YYYY-MM-DD"}. The first day to download. Default:
+\code{"1979-01-01"}.}
 
-\item{vars}{Character vector of GridMET variable names to request. Default
-`c("tmmx","tmmn","pr")`. Downstream calculations assume these are present.}
+\item{end}{String, \code{"YYYY-MM-DD"}. The last day to download. Default:
+\code{"2023-12-31"}.}
 
-\item{exact}{Logical. If `TRUE`, perform weighted extraction over polygons
-(uses a 4 km buffer to ensure full cell capture and `terra` overlap weights).
-If `FALSE`, crop/mask without weights and only fully intersecting cells are 
-returned. Ignored for point inputs. Default `FALSE`.}
+\item{vars}{Character vector. The GridMET variables to download. The
+unit conversions need \code{"tmmx"}, \code{"tmmn"} and \code{"pr"}; others (e.g.
+\code{"srad"}) are kept under their GridMET names for polygons. Default:
+\code{c("tmmx", "tmmn", "pr")}.}
 
-\item{return_grid}{Logical. If `TRUE` and `sf` is polygonal, writes an `sf`
-layer named `aoi_gridmet_grid` to the **global environment** containing the
-intersecting GridMET cell polygons in the raster CRS. Default `FALSE`.}
+\item{exact}{Logical. How polygons are sampled; ignored for points.
+\itemize{
+\item \code{TRUE}: downloads a 4 km buffer around each polygon so edge cells are
+included, and keeps every cell that touches the polygon, with
+\code{area_weight}, the fraction of the cell inside it.
+\item \code{FALSE}: keeps only the cells whose center is inside the polygon;
+\code{area_weight} is \code{NA}.
+}
+
+Default: \code{FALSE}.}
+
+\item{return_grid}{Logical. Whether to also make the GridMET cells as
+polygons.
+\itemize{
+\item \code{TRUE}: creates \code{aoi_gridmet_grid} in the global environment, an sf
+object of the cells that intersect each feature (in the GridMET CRS),
+with the \code{col_name} column.
+\item \code{FALSE}: creates nothing.
+}
+
+Default: \code{FALSE}.}
+}
+\value{
+A tibble, one row per feature, cell and day, with \code{x}, \code{y},
+\code{date}, \code{ppt_mm}, \code{tmax_C}, \code{tmin_C}, \code{tmean_C}, \code{area_weight} and the
+\code{col_name} column.
 }
 \description{
-Convenience wrapper around `climateR::getGridMET()` that fetches daily
-GridMET variables for an `sf` object (points or polygons), harmonizes CRS,
-and returns a tidy table with per-cell centroid coordinates (`x`, `y`), `date`,
-precipitation (mm), and temperatures (°C). For polygons, you can choose an
-**area-weighted** extraction that includes fractional cell overlap weights.
+Downloads daily GridMET climate with \code{\link[climateR:getGridMET]{climateR::getGridMET()}} for each
+feature of an sf object, so it needs internet, and returns a long table
+of precipitation and temperature per grid cell and day.
+\itemize{
+\item Polygons: every GridMET cell in the polygon, one row per cell and day,
+with the cell center as \code{x} and \code{y} (see \code{exact}).
+\item Points: the cell containing the point, one row per day, with the point
+(its centroid) as \code{x} and \code{y}.
 }
-\details{
-- **Geometry support:**  
-  Accepts `POLYGON`, `MULTIPOLYGON`, or `POINT`. Polygons are processed cell-by-cell
-  (optionally with overlap weights); points return the cell time series at the
-  point location.
 
-- **Exact vs non-exact polygon mode:**  
-  *`exact = TRUE`* → buffers the AOI by 4 km before download to ensure edge
-  cells are included, then uses `terra::extract(..., weights = TRUE, exact = TRUE)`
-  so the output includes an `area_weight` column (fractional overlap per cell).  
-  *`exact = FALSE`* → crops/masks without weights; `area_weight` is set to `NA`.
-
-- **Returned grid (optional):**  
-  If `return_grid = TRUE` (polygon input), the function creates
-  **`aoi_gridmet_grid`** in the global environment: an `sf` polygon layer of the
-  GridMET cells intersecting the AOI in the raster CRS.
-
-- **Variables & units:**  
-  Designed for the trio `vars = c("tmmx","tmmn","pr")` (daily max/min air
-  temperature in K; precipitation in mm). Temperatures are converted to °C via
-  `tmax_C = tmmx - 273.15`, `tmin_C = tmmn - 273.15`, and `tmean_C` is their
-  average. Precipitation is returned as `ppt_mm = pr`.
-
-- **Tagging / join key:**  
-  The column given in `col_name` is temporarily renamed to `join_index`
-  internally and restored in the output to its original name for joining.
+Temperatures are converted from kelvin to degrees C (\code{tmax_C}, \code{tmin_C}
+and \code{tmean_C}, their mean) and precipitation is returned as \code{ppt_mm}.
+This needs \code{vars} to include \code{"tmmx"}, \code{"tmmn"} and \code{"pr"}.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads from the GridMET server, so it needs internet
+site <- sf::st_as_sf(data.frame(site = "Springdale", lon = -112.9877, lat = 37.1889),
+                     coords = c("lon", "lat"), crs = 4326)
+clim <- get_climate_historic(site, col_name = site,
+                             start = "2020-01-01", end = "2020-01-31")
+head(clim)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_climate_future]{get_climate_future()}} for MACA projections at the same places;
+\code{\link[=select_cfs_deep_dive]{select_cfs_deep_dive()}} to pick climate futures.
 }

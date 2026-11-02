@@ -2,18 +2,7 @@
 % Please edit documentation in R/get_rockd_aoi.R
 \name{get_rockd_aoi}
 \alias{get_rockd_aoi}
-\title{This function uses the get_rockd.R function to pull geologic layers from 
-the Macrostrat API over an area of interest (aoi). Because the API doesn't have a
-native method for pulling from an aoi, the function first converts a polygon
-aoi into a gridded set of points. Then, it pulls geologic outcrop
-polygons for the points successively. After pulling for a point, it masks
-remaining points that overlap the outcrop extent to avoid redundancy in
-pulls. Because multiple geologic products typically exist for a given point,
-(and therefore multiple polygons of varying size and resolution), this function
-allows users to select the resolution they want (assuming the smallest extent
-is the highest resolution). Generally speaking, if the map has a
-smaller extent, the resolution is finer (think geologic quadrangle compared
-to regional or state-wide maps).}
+\title{Geologic map units over an area (Macrostrat)}
 \usage{
 get_rockd_aoi(
   aoi,
@@ -22,28 +11,60 @@ get_rockd_aoi(
 )
 }
 \arguments{
-\item{aoi}{An `sf` polygon object containing area to extract outcrop extents for.}
+\item{aoi}{sf object. The area of interest, as polygons. Required.}
 
-\item{crop}{If true, crops outcrop extent to aoi. False, keeps expansive bounds.}
+\item{crop}{Logical. Whether to cut the units to the area.
+\itemize{
+\item \code{TRUE}: crops the result to the bounding box of \code{aoi}.
+\item \code{FALSE}: returns the whole units, which can extend far beyond it.
+}
 
-\item{resolution}{Set resolution for geologic layers to pull. Either "tiny",
-"small", "medium", or "large" in order of decreasing resolution. I.e., 
-tiny = coarse resolution (quicker), large = finest resolution (takes much longer)}
+Default: \code{TRUE}.}
+
+\item{resolution}{String. The map scale to keep, one of:
+\itemize{
+\item \code{"tiny"}: global maps, coarsest and quickest;
+\item \code{"small"}: national or regional maps;
+\item \code{"medium"}: state maps;
+\item \code{"large"}: local (e.g. quadrangle) maps, finest and slowest.
+}
+
+Pass one value. Default: \code{c("tiny", "small", "medium", "large")}, which
+stops with an error, so a value must be given.}
 }
 \value{
-An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
+An sf object of geologic unit polygons (CRS 4326) with the
+Macrostrat columns; the age columns (\code{b_age}, \code{t_age}, \code{b_int_id},
+\code{t_int_id}, \code{b_int_age}, \code{t_int_age}) are character.
 }
 \description{
-This function uses the get_rockd.R function to pull geologic layers from 
-the Macrostrat API over an area of interest (aoi). Because the API doesn't have a
-native method for pulling from an aoi, the function first converts a polygon
-aoi into a gridded set of points. Then, it pulls geologic outcrop
-polygons for the points successively. After pulling for a point, it masks
-remaining points that overlap the outcrop extent to avoid redundancy in
-pulls. Because multiple geologic products typically exist for a given point,
-(and therefore multiple polygons of varying size and resolution), this function
-allows users to select the resolution they want (assuming the smallest extent
-is the highest resolution). Generally speaking, if the map has a
-smaller extent, the resolution is finer (think geologic quadrangle compared
-to regional or state-wide maps).
+Gets the Macrostrat geologic map units (\url{https://macrostrat.org/}) over
+an area, so it needs internet. The API only answers point queries, so the
+function puts a 100 x 100 grid of points over \code{aoi}, drops points outside
+the US (using \code{\link[tigris:states]{tigris::states()}}, with a small inland buffer because
+coastal points often fail), and queries the points one at a time with
+\code{\link[=get_rockd]{get_rockd()}}. After each query it drops the remaining points that the
+returned units already cover. A point often has units from several map
+sources; only the source at \code{resolution} is kept, or the next coarser one
+if it isn't available (with a message at the end).
+
+It turns off s2 geometry with \code{\link[sf:sf_use_s2]{sf::sf_use_s2()}} while it runs (the
+geologic polygons are often invalid) and turns it back on at the end. It
+shows a progress bar and can take a long time for large areas or fine
+resolutions.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries the Macrostrat API many times, so it needs internet and takes a
+# few minutes even for a small area
+box <- sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(
+  c(xmin = -112.99, ymin = 37.20, xmax = -112.95, ymax = 37.24), crs = 4326
+)))
+geology <- get_rockd_aoi(box, resolution = "medium")
+unique(geology$name)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_rockd]{get_rockd()}} for points; \code{\link[=get_surficial_geology]{get_surficial_geology()}} for USGS
+surficial geology.
 }

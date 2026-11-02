@@ -2,18 +2,69 @@
 % Please edit documentation in R/listNWIS.R
 \name{listNWIS}
 \alias{listNWIS}
-\title{Inventory of USGS flow data, tidied and queriable by sites, states, or any area of interest}
+\title{Inventory of USGS NWIS data for an area, sites or states}
 \usage{
 listNWIS(aoi = NULL, dist, states = NULL, sites = NULL)
 }
 \arguments{
-\item{aoi}{An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object or \code{NULL}. The area of interest, as polygons, e.g. a
+park boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}.
+\itemize{
+\item An sf object: queries the bounding box of each feature (after the
+\code{dist} buffer) and keeps the sites inside the buffered area, with the
+\code{aoi} columns joined on.
+\item \code{NULL}: uses \code{sites} or \code{states} instead.
+}
 
-\item{dist}{The distance (in the same units used by `getParkBoundary()`) to buffer around park boundary}
+Default: \code{NULL}.}
+
+\item{dist}{Numeric. The distance to buffer \code{aoi} by, in meters for a
+longitude/latitude CRS (like the park boundaries) or in the CRS units
+otherwise; \code{0} for no buffer. Has no default, so it is required when
+\code{aoi} is given; ignored otherwise.}
+
+\item{states}{Character vector or \code{NULL}. Two-letter state codes, e.g.
+\code{"UT"}; every site in those states is listed, in requests of up to
+35,000 sites. Only used when \code{aoi} and \code{sites} are \code{NULL}. Default:
+\code{NULL}.}
+
+\item{sites}{Character vector or \code{NULL}. USGS site numbers, e.g.
+\code{"09405500"}, listed in requests of up to 35,000. Only used when \code{aoi} is
+\code{NULL}. Default: \code{NULL}.}
 }
 \value{
-An sf object of USGS gaging stations within given spatial boundary and attributes
+An sf object of site points, one row per site, data type and
+parameter, with \code{site_no}, \code{site_name}, \code{data_type_cd}, \code{site_type_cd},
+\code{n_obs}, \code{begin_date}, \code{end_date}, \code{parameter} (name), \code{code} (parameter
+code), \code{site_type} and \code{data_type} (e.g. \code{"Daily"}, \code{"Groundwater Levels"}). In the CRS of \code{aoi} when it is given, otherwise NAD83. With
+\code{sites} or \code{states} the result is returned invisibly, so assign it.
 }
 \description{
-This function imports an inventory of available flow data from the USGS National Water Information System (https://waterdata.usgs.gov/nwis)
+Lists the data available from the USGS National Water Information System
+(\url{https://waterdata.usgs.gov/nwis}) with \code{\link[dataRetrieval:whatNWISdata]{dataRetrieval::whatNWISdata()}},
+so it needs internet: one row per site, data type and parameter, with the
+period of record and the number of observations. Parameter names come
+from \link[dataRetrieval:parameterCdFile]{dataRetrieval::parameterCdFile} and site type names from
+\code{\link[dataRetrieval:read_waterdata_metadata]{dataRetrieval::read_waterdata_metadata()}}.
+
+Give one of \code{aoi}, \code{sites} or \code{states}. If more than one is given, \code{aoi}
+is used first, then \code{sites}, then \code{states}. If none is given, the function
+stops with the error "BROKEN".
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries NWIS, so it needs internet
+gage <- listNWIS(sites = "09405500")
+gage[, c("site_no", "site_name", "data_type", "parameter", "begin_date")]
+
+# Every site within 2 km of a park
+zion <- wavacore::getParkBoundary("ZION")
+zion_sites <- listNWIS(aoi = zion, dist = 2000)
+table(zion_sites$data_type)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=add_gw_meta]{add_gw_meta()}} to add well and aquifer details to groundwater
+sites; \code{\link[=nldi_finder]{nldi_finder()}} for the drainage basin of a gage;
+\code{\link[=baseflow_eckhardt]{baseflow_eckhardt()}} to separate baseflow from streamflow.
 }

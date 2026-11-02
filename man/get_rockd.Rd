@@ -2,16 +2,38 @@
 % Please edit documentation in R/get_rockd.R
 \name{get_rockd}
 \alias{get_rockd}
-\title{This function pulls geologic layers from the Macrostrat API that intersect a user-specified point (or points) of interest.}
+\title{Geologic map units at points (Macrostrat)}
 \usage{
 get_rockd(points)
 }
 \arguments{
-\item{points}{An `sf` object of points.}
+\item{points}{sf object. The points, in any CRS (they are converted to
+longitude/latitude). Repeated coordinates are requested once. Required.}
 }
 \value{
-An `sf` object of Macrostrat (https://macrostrat.org/) geologic layers that intersect the point object(s).
+An sf object of geologic unit polygons (CRS 4326) with the
+Macrostrat columns (e.g. \code{map_id}, \code{source_id}, \code{name}, \code{strat_name},
+\code{lith}, \code{b_int_age}, \code{t_int_age}, \code{b_age}, \code{t_age}) and a column named
+\code{aoi$rowid[i]} holding the number of the point (among the distinct
+points) each unit came from. Points with no units add no rows.
 }
 \description{
-This function pulls geologic layers from the Macrostrat API that intersect a user-specified point (or points) of interest.
+Gets the geologic map units at each point from the Macrostrat API
+(\url{https://macrostrat.org/}), including the units of every map source that
+covers the point (from global to local scale), so it needs internet. One
+request is made per distinct point.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries the Macrostrat API, so it needs internet
+pt <- sf::st_as_sf(data.frame(lon = -112.95, lat = 37.25),
+                   coords = c("lon", "lat"), crs = 4326)
+units <- get_rockd(pt)
+unique(units$name)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_rockd_aoi]{get_rockd_aoi()}} for an area; \code{\link[=get_formation_info]{get_formation_info()}} to look up
+a formation by name; \code{\link[=get_surficial_geology]{get_surficial_geology()}} for USGS surficial
+geology.
 }

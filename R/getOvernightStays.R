@@ -1,13 +1,38 @@
-#' Get monthly visitor use and overnight-stay components for NPS unit(s)
+#' @title Monthly visits and overnight stays for park units
 #'
-#' Reads locally stored NPS visitor use data files (from Data Store exports),
-#' filters to one or more NPS unit codes, reshapes to compute derived day-use and
-#' overnight-use metrics, and returns a tidy monthly time series.
-#' @param parks Character vector of NPS unit code(s)
+#' @description
+#' Reads the NPS visitor use statistics exported from the NPS Stats "Query
+#' Builder for Public Use Statistics" (every file in
+#' `all/nps_visitor_use_data` in the shared data folder), keeps the given
+#' park units, and calculates day use and overnight use for each month:
+#' * `RecreationOvernightUse`: concessioner lodging and camping, tent and RV
+#'   campers, backcountry and miscellaneous overnight stays;
+#' * `RecreationDayUse`: recreation visits minus recreation overnight use;
+#' * `NonRecreationDayUse`: non-recreation visits minus non-recreation
+#'   overnight stays;
+#' * totals for day use, overnight use and people.
 #'
-#' @return A tibble with one row per unit code per month of visitation data.
-#' 
+#' Some codes in the files are changed: JOFK to JOFI, KLSE to KLGO, MAMC to
+#' MABE, and NCPC, NCPE, NAVC and PRPA to NACA.
+#'
+#' @param parks Character vector. NPS unit codes, e.g. `c("ZION", "BRCA")`.
+#'   Codes not in the files give no rows. Required.
+#'
+#' @return A tibble, one row per park unit and month, with `UnitCode`, `ym`
+#'   (first day of the month), the visit counts (`Backcountry`,
+#'   `ConcessionerCamping`, `ConcessionerLodging`,
+#'   `MiscellaneousOvernightStays`, `NonRecreationVisits`,
+#'   `RecreationVisits`, `RVCampers`, `TentCampers`) and the derived
+#'   `RecreationDayUse`, `NonRecreationDayUse`, `RecreationOvernightUse`,
+#'   `NonRecreationOvernightUse`, `TotalDayUse`, `TotalOvernightUse` and
+#'   `TotalPeople`.
 #' @export
+#' @seealso [wavacore::getUnitVisitation()] for monthly visits from the NPS
+#'   API.
+#' @examplesIf dir.exists(wavacore::wava_data_path("all", "nps_visitor_use_data"))
+#' stays <- getOvernightStays(c("ZION", "BRCA"))
+#' head(stays[, c("UnitCode", "ym", "RecreationVisits", "RecreationOvernightUse")])
+
 getOvernightStays <- function(parks){
   # vars we care about - 
   visit_vars <- c("Backcountry", "ConcessionerCamping", "ConcessionerLodging",

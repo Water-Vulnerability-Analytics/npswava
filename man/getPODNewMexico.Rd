@@ -2,20 +2,48 @@
 % Please edit documentation in R/getPODNewMexico.R
 \name{getPODNewMexico}
 \alias{getPODNewMexico}
-\title{Import and clean New Mexico Water Rights Point of Diversion Data
-This function imports geospatial data from the New Mexico Office of the State Engineer (https://geospatialdata-ose.opendata.arcgis.com/datasets/OSE::ose-pods/about)}
+\title{New Mexico water rights points of diversion in an area}
 \usage{
 getPODNewMexico(aoi, dist = 0)
 }
 \arguments{
-\item{aoi}{An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons with a
+\code{UNIT_CODE} column, e.g. a park boundary from
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in the same units used in  `aoi`) to buffer around spatial object `aoi`}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
+features, in meters for a longitude/latitude CRS (like the park
+boundaries) or in the CRS units otherwise.
+\itemize{
+\item \code{0}: only features inside \code{aoi}.
+\item A positive distance: also features within that distance of it.
+}
+
+Default: \code{0}.}
 }
 \value{
-An sf object of points of diversion within given spatial boundary and attributes
+An sf object of points (in the CRS of \code{aoi}), one row per point of
+diversion, with the service's columns, the \code{aoi} columns, \code{park_right}
+(\code{"Park"} when \code{own_lname} contains "National Park", otherwise
+\code{"Non-park"}; this doesn't catch every park right) and \code{within_aoi}
+(\code{"Within AOI"} or \code{"Within buffer"}).
 }
 \description{
-Import and clean New Mexico Water Rights Point of Diversion Data
-This function imports geospatial data from the New Mexico Office of the State Engineer (https://geospatialdata-ose.opendata.arcgis.com/datasets/OSE::ose-pods/about)
+Downloads the New Mexico Office of the State Engineer points of diversion
+(\url{https://geospatialdata-ose.opendata.arcgis.com/datasets/OSE::ose-pods/about})
+within the bounding box of \code{aoi} (plus \code{dist}), so it needs internet, and
+keeps those inside \code{aoi} and its buffer.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads the park boundaries and the points of diversion, so it needs
+# internet
+band <- wavacore::getParkBoundary("BAND")
+pods <- getPODNewMexico(band, dist = 1000)
+table(pods$within_aoi, pods$park_right)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+The other state functions, e.g. \code{\link[=getPODUtah]{getPODUtah()}} and
+\code{\link[=getPODColorado]{getPODColorado()}}.
 }

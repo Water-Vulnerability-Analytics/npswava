@@ -2,23 +2,27 @@
 % Please edit documentation in R/make_ym.R
 \name{make_ym}
 \alias{make_ym}
-\title{into a 'year-month' (ym) format using the \code{lubridate::ym} function.
-It assumes the date input is a string where the year and month are
-contained within the first seven characters (e.g., "YYYY-MM-DD" or "YYYY-MM").}
+\title{Convert dates to the first day of their month}
 \usage{
 make_ym(date)
 }
 \arguments{
-\item{date}{The input date string or date object. It should be coercible
-to a string where the first seven characters represent "YYYY-MM".}
+\item{date}{Character vector or Date vector. Dates whose first seven
+characters are \code{"YYYY-MM"}, e.g. \code{"2020-06-15"} or \code{"2020-06"}. Values
+that can't be read give \code{NA} with a warning. Required.}
 }
 \value{
-A date object representing the year and month (of class 'Date'
-or 'POSIXct' depending on the input and \code{lubridate}'s behavior),
-formatted as Year-Month.
+A Date vector, each value the first day of its month.
 }
 \description{
-into a 'year-month' (ym) format using the \code{lubridate::ym} function.
-It assumes the date input is a string where the year and month are
-contained within the first seven characters (e.g., "YYYY-MM-DD" or "YYYY-MM").
+Takes the first seven characters of each date (\code{"YYYY-MM"}) and converts
+them with \code{\link[lubridate:ym]{lubridate::ym()}}, so every date becomes the first day of its
+month. Useful for grouping daily data by month.
+}
+\examples{
+make_ym(c("2020-06-15", "2020-06-30", "2021-01"))
+make_ym(as.Date("2023-10-09"))
+}
+\seealso{
+\code{\link[=calc_water_year]{calc_water_year()}} to group dates by water year.
 }

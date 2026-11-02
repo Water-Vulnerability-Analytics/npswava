@@ -2,22 +2,46 @@
 % Please edit documentation in R/getWaterSuppliersUtah.R
 \name{getWaterSuppliersUtah}
 \alias{getWaterSuppliersUtah}
-\title{Import and clean Utah DNR's Culinary Water Service Area Boundaries, and water use data.
-This function imports geospatial data from the Utah Geospatial Resource Center 
-#'}
+\title{Utah culinary water service areas in an area}
 \usage{
 getWaterSuppliersUtah(aoi, dist = 0)
 }
 \arguments{
-\item{aoi}{An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons with a
+\code{UNIT_CODE} column, e.g. a park boundary from
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in meters) to buffer around spatial object `park`}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
+features, in meters for a longitude/latitude CRS (like the park
+boundaries) or in the CRS units otherwise.
+\itemize{
+\item \code{0}: only features inside \code{aoi}.
+\item A positive distance: also features within that distance of it.
+}
+
+Default: \code{0}.}
 }
 \value{
-An sf object of water service areas within given spatial boundary and its attributes
+An sf object of polygons (in the CRS of \code{aoi}), one row per
+service area and park, with the service area columns, \code{UNIT_CODE},
+\code{park_right} (\code{"Park"} when \code{WRNAME} contains "National Park",
+otherwise \code{"Non-park"}) and \code{within_park} (\code{"Within Park"} or \code{NA} in the
+buffer).
 }
 \description{
-Import and clean Utah DNR's Culinary Water Service Area Boundaries, and water use data.
-This function imports geospatial data from the Utah Geospatial Resource Center 
-#'
+Downloads the Utah Division of Drinking Water culinary water service area
+boundaries from the Utah Geospatial Resource Center, so it needs internet,
+and keeps the parts inside \code{aoi} and its buffer.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads the statewide service areas, so it needs internet
+zion <- wavacore::getParkBoundary("ZION")
+suppliers <- getWaterSuppliersUtah(zion, dist = 5000)
+suppliers
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=getWaterUseUtah]{getWaterUseUtah()}} for the water use of a public water system;
+\code{\link[=getPODUtah]{getPODUtah()}} for points of diversion.
 }

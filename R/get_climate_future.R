@@ -1,80 +1,75 @@
-#' Download and tidy future MACA climate for points or polygons
+#' @title Download daily MACA climate projections for points or polygons
 #'
 #' @description
-#' Fetches daily MACA downscaled climate with `climateR::getMACA()` for an `sf`
-#' object (points or polygons), harmonizes CRS, and returns a tidy table with
-#' per-cell coordinates (`x`, `y`), `date`, precipitation (mm), and temperatures
-#' (°C). Supports multiple model–scenario combinations (`GCM`) and optional
-#' edge-inclusive extraction for polygons.
+#' Downloads daily MACA downscaled climate projections with
+#' [climateR::getMACA()] for each feature of an sf object and each model and
+#' scenario, so it needs internet, and returns a long table of precipitation
+#' and temperature per grid cell and day. Date ranges that span 2005 are
+#' downloaded in two parts (historical forcing up to 2005, the scenario
+#' from 2006).
 #'
-#' @details
-#' ## Geometry support
-#' - **POLYGON / MULTIPOLYGON**: downloads the raster stack over each AOI; if an AOI spans
-#'   multiple MACA cells, returns one row per *cell–date*.
-#' - **POINT**: returns the time series for the cell containing the point.
+#' * Polygons: every MACA cell in the polygon, one row per cell and day (see
+#'   `exact`).
+#' * Points: the cell containing the point, one row per day, with the point
+#'   as `x` and `y`.
 #'
-#' ## Exact mode and coordinate shifting
-#' - `exact = TRUE` (polygons only): expands the AOI by 4 km and uses
-#'   `terra::extract(..., touches = TRUE)` so cells that merely *touch*
-#'   the AOI are included.
-#' - When `exact = TRUE`, you must pass `gridmet_points` (an `sf` POINT layer of
-#'   **historical/GRIDMET** sample locations with `x`/`y` columns). After extracting
-#'   the MACA data, the function **reassigns** each MACA cell’s coordinates
-#'   to the **nearest** historical/GRIDMET point using `sf::st_nearest_feature()`.
-#'   This produces a single reconciled set of coordinates (`x`, `y`) for both
-#'   historical (GRIDMET) and future (MACA) datasets downstream, preventing
-#'   sub-grid mismatches when extracting soils, slope, aspect, etc.
-#'   - If `gridmet_points` has a different CRS, it is transformed internally.
-#'   - In the returned table, the `x`/`y` columns are the **reconciled GRIDMET
-#'     coordinates** after shifting (not the original MACA cell centroids).
-#' - `exact = FALSE`: crops/masks with cell interiors only; no coordinate shifting
-#'   is performed and `x`/`y` reflect the MACA cell centers for the extraction.
+#' Temperatures are converted from kelvin to degrees C (`tmax_C`, `tmin_C`
+#' and `tmean_C`, their mean) and precipitation is returned as `ppt_mm`.
+#' This needs `vars` to include `"tasmax"`, `"tasmin"` and `"pr"`. Other MACA
+#' variables are `rhsmax`, `rhsmin`, `huss`, `rsds`, `was`, `uas` and `vas`.
 #'
-#' ## Models & scenarios
-#' - `GCM` entries should be strings like `"HadGEM2-CC365.rcp45"`.
-#' - If any element equals `"all"`, a curated set of NPS-used model–scenario
-#'   combinations for RCP 4.5 & 8.5 is used internally.
+#' @param sf sf object. The areas of interest, all polygons/multipolygons or
+#'   all points. Stops with an error for other geometry types. Required.
+#' @param col_name String. The name of the column of `sf` that identifies
+#'   each feature; it is kept in the output under the same name. Give it as
+#'   a string: a bare name fails when the column is renamed back. Required.
+#' @param start String, `"YYYY-MM-DD"`. The first day to download. Default:
+#'   `"2023-01-01"`.
+#' @param end String, `"YYYY-MM-DD"`. The last day to download. Default:
+#'   `"2070-01-01"`.
+#' @param vars Character vector. The MACA variables to download. Default:
+#'   `c("tasmax", "tasmin", "pr")`.
+#' @param GCM Character vector. The model and scenario pairs, as
+#'   `"<model>.<scenario>"`, e.g. `"HadGEM2-CC365.rcp45"`.
+#'   * Model and scenario pairs: one download per pair.
+#'   * Any element `"all"`: the 40 pairs (20 models, RCP4.5 and RCP8.5) used
+#'     by the NPS.
 #'
-#' ## Variables & units
-#' - Defaults: `vars = c("tasmax","tasmin","pr")`.
-#' - Temperatures (K) are converted to °C:
-#'   `tmax_C`, `tmin_C`, and `tmean_C = (tmax_C + tmin_C)/2`.
-#' - Precipitation is returned as daily totals in mm (`ppt_mm`).
-#' - Other MACA variables available: 
-#'    tasmax—Maximum daily temperature near surface
-#'    tasmin—Minimum daily temperature near surface
-#'    rhsmax—Maximum daily relative humidity near surface
-#'    rhsmin—Minimum daily relative humidity near surface
-#'    huss—Average daily specific humidity near surface
-#'    pr—Average daily precipitation amount at surface
-#'    rsds—Average daily downward shortwave radiation at surface
-#'    was—Average daily wind speed near surface
-#'    uas—Average daily eastward component of wind near surface
-#'    vas—Average daily northward component of wind near surface
+#'   Default: `select_cfs$GCM`, the models picked by [select_cfs_deep_dive()]
+#'   in an object named `select_cfs` in the global environment; pass `GCM`
+#'   when there is none.
+#' @param exact Logical. How polygons are sampled; ignored for points.
+#'   * `TRUE`: downloads a 4 km buffer around each polygon and reads the
+#'     cells at the `gridmet_points`, then gives each value the coordinates
+#'     of the nearest GridMET point. The future and historical tables then
+#'     share the same `x` and `y`, so they join cleanly.
+#'   * `FALSE`: keeps only the cells whose center is inside the polygon, with
+#'     the MACA cell centers as `x` and `y`.
 #'
-#' ## Identifier handling
-#' - The column named in `col_name` is temporarily renamed to `join_index`
-#'   internally and restored in the output to ease joins.
+#'   Default: `FALSE`.
+#' @param gridmet_points sf object or `NULL`. The GridMET cell points used
+#'   for the historical data, with numeric `x` and `y` columns (longitude and
+#'   latitude), e.g. from the output of [get_climate_historic()].
+#'   * An sf object: required when `exact = TRUE`.
+#'   * `NULL`: only allowed with `exact = FALSE`.
 #'
-#' @param sf An `sf` object of areas of interest (points or polygons).
-#' @param col_name Bare column name in `sf` that uniquely identifies each AOI;
-#'   this identifier is preserved in the output.
-#' @param start Start date (inclusive) as `"YYYY-MM-DD"`. Default `"2023-01-01"`.
-#' @param end End date (inclusive) as `"YYYY-MM-DD"`. Default `"2070-01-01"`.
-#' @param vars Character vector of MACA variables to download. Default
-#'   `c("tasmax","tasmin","pr")`.
-#' @param GCM Character vector of model–scenario strings (e.g.,
-#'   `"HadGEM2-CC365.rcp45"`). If it contains `"all"`, a predefined set of
-#'   NPS-used futures is used.
-#' @param exact Logical; if `TRUE`, include cells that merely touch the AOI
-#'   boundary (edge-inclusive extraction). Default `FALSE`.
-#' @param gridmet_points Required only when exact is `TRUE`, an `sf` POINT layer representing the
-#'   **historical/GRIDMET** sample locations used elsewhere in your workflow.
-#'   Must carry numeric `x` and `y` columns (lon/lat in EPSG:4326 preferred).
-#'   When provided and `exact = TRUE`, future MACA rows are **shifted** to the
-#'   nearest of these points so that `x`/`y` in the output match the historical
-#'   coordinate set.  
+#'   Default: `NULL`.
+#'
+#' @return A tibble, one row per feature, model, scenario, cell and day,
+#'   with `x`, `y`, `date`, `GCM`, `Ensemble`, `RCP`, `ppt_mm`, `tmax_C`,
+#'   `tmin_C`, `tmean_C` and the `col_name` column.
 #' @export
+#' @seealso [get_climate_historic()] for GridMET at the same places;
+#'   [select_cfs_deep_dive()] to pick the models.
+#' @examplesIf interactive()
+#' # Downloads from the MACA server, so it needs internet
+#' site <- sf::st_as_sf(data.frame(site = "Springdale", lon = -112.9877, lat = 37.1889),
+#'                      coords = c("lon", "lat"), crs = 4326)
+#' future <- get_climate_future(site, col_name = "site",
+#'                              start = "2040-01-01", end = "2040-01-31",
+#'                              GCM = c("CCSM4.rcp45", "CCSM4.rcp85"))
+#' head(future)
+
 get_climate_future <- function(sf,
                                col_name,
                                start = "2023-01-01",

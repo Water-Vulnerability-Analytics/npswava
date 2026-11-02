@@ -1,20 +1,92 @@
-### FUNCTION to select GCM climate futures using NPS PCA-method with user 
-#' defined x and y variables, typically deltas of two variables from baseline 
-#' to future periods. Fxn has added arguments to label futures and plot
-#' @param df dataframe of differentials to plot on x and y axis
-#' @param x x-column name in df containing variable for x-axis in PCA selection
-#' @param y y-column name in df containing variable for y-axis in PCA selection
-#' @param x_name user-defined label for x-axis, defaults to x if none provided
-#' @param y_name user-defined label for y-axis, defaults to y if none provided
-#' @param high_x character string for what to call high x, e.g., hot
-#' @param low_x character string for what to call low x, e.g., warm
-#' @param high_y character string for what to call high y, e.g., wet
-#' @param low_y character string for what to call low y, e.g., dry
-#' @param to_plot logical varialbe whether to return plot. If TRUE, returns a 
-#' @param park if to_plot is TRUE, the park name to put in the plot title
-#' list with first 
-
+#' @title Pick climate futures from model changes (NPS PCA method)
+#'
+#' @description
+#' Picks a small set of climate models that span the range of projected
+#' change, following the NPS climate futures method. Each model run in `df`
+#' has a change in two variables (`x` and `y`, e.g. temperature and
+#' precipitation):
+#' 1. Only models ranked high skill (rank 18 or better) for `region` in the
+#'    NPS GCM skill table are kept. The table is read from GitHub
+#'    (rossyndicate/CCRP_automated_climate_futures), so it needs internet.
+#' 2. Each model gets a climate future (`CF`) from the means and quartiles of
+#'    `x` and `y`: `"Central"` or one of the four corners (e.g. "Low x, High
+#'    y").
+#' 3. A principal component analysis of `x` and `y` picks the models at the
+#'    minimum and maximum of PC1 and PC2. A missing corner is filled with the
+#'    model nearest that corner, and a model picked twice is dropped.
+#'
+#' It prints the means of `y` and `x`.
+#'
+#' @param df Data frame. One row per model run, with a `GCM` column of
+#'   `"<model>.<scenario>"` names as in the skill table (e.g.
+#'   `"CCSM4.rcp45"`), an `RCP` column (for the plot), and the `x` and `y`
+#'   columns. Required.
+#' @param x String. The name of the column for the x axis, e.g. the change
+#'   in mean temperature. Required.
+#' @param y String. The name of the column for the y axis, e.g. the change
+#'   in precipitation. Required.
+#' @param x_name String. The label for `x` in the climate future names and
+#'   the plot. Default: `x`.
+#' @param y_name String. The label for `y`. Default: `y`.
+#' @param high_x String or `NULL`. The name for high `x`, e.g. `"Hot"`.
+#'   * A string: used as is in the climate future names.
+#'   * `NULL`: `"High <x_name>,"`.
+#'
+#'   Default: `NULL`.
+#' @param low_x String or `NULL`. The name for low `x`, e.g. `"Warm"`; `NULL`
+#'   gives `"Low <x_name>,"`. Default: `NULL`.
+#' @param high_y String or `NULL`. The name for high `y`, e.g. `"Wet"`;
+#'   `NULL` gives `"High <y_name>"`. Default: `NULL`.
+#' @param low_y String or `NULL`. The name for low `y`, e.g. `"Dry"`; `NULL`
+#'   gives `"Low <y_name>"`. Default: `NULL`.
+#' @param to_plot Logical. Whether to also return a plot.
+#'   * `TRUE`: returns a list of the selected models and a ggplot scatter
+#'     plot of every model, with the quartile box, the means and the selected
+#'     models circled.
+#'   * `FALSE`: returns only the selected models.
+#'
+#'   Default: `TRUE`.
+#' @param park String or `NULL`. The park name for the plot title. Default:
+#'   `NULL`.
+#' @param fill_var String. The column of `df` that colors the points.
+#'   * `"CF"`: the climate future, with set colors.
+#'   * Another numeric column: a yellow-to-red gradient.
+#'
+#'   Default: `"CF"`.
+#' @param fill_var_name String. The legend title for `fill_var`. Default:
+#'   `"Climate Future"`.
+#' @param region String. The NPS region in the skill table whose skill
+#'   ranks are used, e.g. `"SWR"`. Default: `"SWR"`.
+#' @param highlight Character vector or `NULL`. Climate futures (`CF`
+#'   values) whose selected models get a gold circle in the plot; `NULL` for
+#'   none. Default: `NULL`.
+#'
+#' @return With `to_plot = FALSE`, a tibble of the selected models with
+#'   `GCM`, `CF`, and the `x` and `y` columns. With `to_plot = TRUE`, a list
+#'   of that tibble and the ggplot.
 #' @export
+#' @seealso [get_climate_future()], which downloads the selected models.
+#' @examplesIf interactive()
+#' # Reads the GCM skill table from GitHub, so it needs internet
+#' models <- c("HadGEM2-ES365", "HadGEM2-CC365", "CNRM-CM5", "CCSM4", "CanESM2",
+#'             "MIROC5", "IPSL-CM5A-MR", "NorESM1-M", "bcc-csm1-1-m",
+#'             "IPSL-CM5A-LR", "CSIRO-Mk3-6-0", "BNU-ESM", "MRI-CGCM3",
+#'             "GFDL-ESM2M", "GFDL-ESM2G", "MIROC-ESM", "inmcm4",
+#'             "MIROC-ESM-CHEM", "bcc-csm1-1", "IPSL-CM5B-LR")
+#' set.seed(1)
+#' deltas <- data.frame(GCM = paste0(rep(models, 2), ".", rep(c("rcp45", "rcp85"), each = 20)),
+#'                      RCP = rep(c("rcp45", "rcp85"), each = 20),
+#'                      delta_tmean = c(runif(20, 1, 3), runif(20, 2, 5)),
+#'                      delta_ppt = runif(40, -15, 15))
+#'
+#' futures <- select_cfs_deep_dive(deltas, x = "delta_tmean", y = "delta_ppt",
+#'                                 x_name = "Temperature", y_name = "Precipitation",
+#'                                 high_x = "Hot", low_x = "Warm",
+#'                                 high_y = "Wet", low_y = "Dry",
+#'                                 park = "ZION")
+#' futures[[1]]
+#' futures[[2]]
+
 select_cfs_deep_dive <- function(df,
                                  x,
                                  y,

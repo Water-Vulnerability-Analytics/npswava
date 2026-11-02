@@ -1,11 +1,57 @@
-#' Inventory of USGS flow data, tidied and queriable by sites, states, or any area of interest
-#' 
-#' This function imports an inventory of available flow data from the USGS National Water Information System (https://waterdata.usgs.gov/nwis)
-#' 
-#' @param aoi An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.
-#' @param dist The distance (in the same units used by `getParkBoundary()`) to buffer around park boundary
-#' @return An sf object of USGS gaging stations within given spatial boundary and attributes
+#' @title Inventory of USGS NWIS data for an area, sites or states
+#'
+#' @description
+#' Lists the data available from the USGS National Water Information System
+#' (<https://waterdata.usgs.gov/nwis>) with [dataRetrieval::whatNWISdata()],
+#' so it needs internet: one row per site, data type and parameter, with the
+#' period of record and the number of observations. Parameter names come
+#' from [dataRetrieval::parameterCdFile] and site type names from
+#' [dataRetrieval::read_waterdata_metadata()].
+#'
+#' Give one of `aoi`, `sites` or `states`. If more than one is given, `aoi`
+#' is used first, then `sites`, then `states`. If none is given, the function
+#' stops with the error "BROKEN".
+#'
+#' @param aoi sf object or `NULL`. The area of interest, as polygons, e.g. a
+#'   park boundary from [wavacore::getParkBoundary()].
+#'   * An sf object: queries the bounding box of each feature (after the
+#'     `dist` buffer) and keeps the sites inside the buffered area, with the
+#'     `aoi` columns joined on.
+#'   * `NULL`: uses `sites` or `states` instead.
+#'
+#'   Default: `NULL`.
+#' @param dist Numeric. The distance to buffer `aoi` by, in meters for a
+#'   longitude/latitude CRS (like the park boundaries) or in the CRS units
+#'   otherwise; `0` for no buffer. Has no default, so it is required when
+#'   `aoi` is given; ignored otherwise.
+#' @param states Character vector or `NULL`. Two-letter state codes, e.g.
+#'   `"UT"`; every site in those states is listed, in requests of up to
+#'   35,000 sites. Only used when `aoi` and `sites` are `NULL`. Default:
+#'   `NULL`.
+#' @param sites Character vector or `NULL`. USGS site numbers, e.g.
+#'   `"09405500"`, listed in requests of up to 35,000. Only used when `aoi` is
+#'   `NULL`. Default: `NULL`.
+#'
+#' @return An sf object of site points, one row per site, data type and
+#'   parameter, with `site_no`, `site_name`, `data_type_cd`, `site_type_cd`,
+#'   `n_obs`, `begin_date`, `end_date`, `parameter` (name), `code` (parameter
+#'   code), `site_type` and `data_type` (e.g. `"Daily"`, `"Groundwater
+#'   Levels"`). In the CRS of `aoi` when it is given, otherwise NAD83. With
+#'   `sites` or `states` the result is returned invisibly, so assign it.
 #' @export
+#' @seealso [add_gw_meta()] to add well and aquifer details to groundwater
+#'   sites; [nldi_finder()] for the drainage basin of a gage;
+#'   [baseflow_eckhardt()] to separate baseflow from streamflow.
+#' @examplesIf interactive()
+#' # Queries NWIS, so it needs internet
+#' gage <- listNWIS(sites = "09405500")
+#' gage[, c("site_no", "site_name", "data_type", "parameter", "begin_date")]
+#'
+#' # Every site within 2 km of a park
+#' zion <- wavacore::getParkBoundary("ZION")
+#' zion_sites <- listNWIS(aoi = zion, dist = 2000)
+#' table(zion_sites$data_type)
+
 listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   
   #tables <- rvest::read_html('https://help.waterdata.usgs.gov/parameter_cd?group_cd=%') %>%

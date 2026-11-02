@@ -1,11 +1,37 @@
-#' Import and clean New Mexico Water Rights Point of Diversion Data
-#' This function imports geospatial data from the New Mexico Office of the State Engineer (https://geospatialdata-ose.opendata.arcgis.com/datasets/OSE::ose-pods/about)
-#' 
-#' @param aoi An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.
-#' @param dist The distance (in the same units used in  `aoi`) to buffer around spatial object `aoi`
-#' 
-#' @return An sf object of points of diversion within given spatial boundary and attributes
+#' @title New Mexico water rights points of diversion in an area
+#'
+#' @description
+#' Downloads the New Mexico Office of the State Engineer points of diversion
+#' (<https://geospatialdata-ose.opendata.arcgis.com/datasets/OSE::ose-pods/about>)
+#' within the bounding box of `aoi` (plus `dist`), so it needs internet, and
+#' keeps those inside `aoi` and its buffer.
+#'
+#' @param aoi sf object. The area of interest, as polygons with a
+#'   `UNIT_CODE` column, e.g. a park boundary from
+#'   [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by before selecting
+#'   features, in meters for a longitude/latitude CRS (like the park
+#'   boundaries) or in the CRS units otherwise.
+#'   * `0`: only features inside `aoi`.
+#'   * A positive distance: also features within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return An sf object of points (in the CRS of `aoi`), one row per point of
+#'   diversion, with the service's columns, the `aoi` columns, `park_right`
+#'   (`"Park"` when `own_lname` contains "National Park", otherwise
+#'   `"Non-park"`; this doesn't catch every park right) and `within_aoi`
+#'   (`"Within AOI"` or `"Within buffer"`).
 #' @export
+#' @seealso The other state functions, e.g. [getPODUtah()] and
+#'   [getPODColorado()].
+#' @examplesIf interactive()
+#' # Downloads the park boundaries and the points of diversion, so it needs
+#' # internet
+#' band <- wavacore::getParkBoundary("BAND")
+#' pods <- getPODNewMexico(band, dist = 1000)
+#' table(pods$within_aoi, pods$park_right)
+
 getPODNewMexico <- function(aoi, dist = 0){
   
   # add buffer around park boundary

@@ -2,19 +2,37 @@
 % Please edit documentation in R/get_aoi_source.R
 \name{get_formation_info}
 \alias{get_formation_info}
-\title{This function pulls geologic layers from the Macrostrat API that intersect 
-a user-specified point (or points) of interest.}
+\title{Look up a geologic formation by name (Macrostrat)}
 \usage{
 get_formation_info(formation_name, rock_type)
 }
 \arguments{
-\item{points}{An `sf` object of points.}
+\item{formation_name}{String. The stratigraphic name, with underscores
+for spaces, e.g. \code{"Navajo"} or \code{"Cedar_Mesa"}. Required.}
+
+\item{rock_type}{String. A lithology group (e.g. \code{"sandstone"}), meant for
+a second search if the name alone finds nothing. In practice the first
+search's result is always returned, so this has no effect. Required.}
 }
 \value{
-An `sf` object of Macrostrat (https://macrostrat.org/) geologic 
-layers that intersect the point object(s).
+An sf object of unit polygons (CRS 4326) with the Macrostrat unit
+columns (e.g. \code{unit_id}, \code{strat_name_long}, \code{Fm}, \code{t_age}, \code{b_age}).
+Empty if nothing matches. If the request fails, the function stops with
+an error.
 }
 \description{
-This function pulls geologic layers from the Macrostrat API that intersect 
-a user-specified point (or points) of interest.
+Searches the Macrostrat units API (\url{https://macrostrat.org/}) for a
+stratigraphic name, so it needs internet, and returns the matching units
+as polygons. Used by \code{\link[=get_aoi_source]{get_aoi_source()}} to find the formation of a deep
+groundwater or spring source.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries the Macrostrat API, so it needs internet
+navajo <- get_formation_info("Navajo", "sandstone")
+range(as.numeric(navajo$t_age))
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_rockd]{get_rockd()}} for units at points; \code{\link[=get_aoi_source]{get_aoi_source()}}.
 }

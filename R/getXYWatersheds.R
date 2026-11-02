@@ -1,16 +1,47 @@
-#' Get Watersheds for Point Locations
+#' @title Watershed upstream of a point
 #'
-#' This function delineates watersheds for given point locations using NHDPlus data.
-#' It handles both small tributaries and main NHD flowlines, automatically detecting the
-#' appropriate method based on the proximity to the nearest NHD flowline.
+#' @description
+#' Delineates the watershed upstream of one point with NHDPlus web services
+#' (nhdplusTools), so it needs internet. It looks for NHDPlus flowlines near
+#' the point, treating a 30 m buffer around them as on the flowline:
+#' * If the point is on or near a flowline (or `snap = TRUE`), it moves the
+#'   point to the nearest flowline, traces downstream to the flowline with
+#'   [nhdplusTools::get_raindrop_trace()], and returns the whole watershed
+#'   upstream of that spot ([nhdplusTools::get_split_catchment()]).
+#' * Otherwise the point is on a tributary too small for NHDPlus, and it
+#'   returns the part of the catchment that drains to the point. If the point
+#'   is within 35 m of a flowline, it tries points on a 35 m circle around
+#'   it, away from the flowline, and keeps the largest result.
 #'
-#' @param sf An sf object representing the area of interest. If provided, the 
-#'   coordinates parameter is ignored. Default is NULL.
-#' @param coordinates A numeric vectorcontaining longitude and latitude
-#'   coordinates (in that order). Only used if sf parameter is NULL. Default is NULL.
-#' @param crs The coordinate system of the coordinates if that approach is used. 
-#' @param snap Whether to snap the point to the nearest NHD flowline. Default is FALSE.
+#' @param sf sf object or `NULL`. The point, as an sf object with one point.
+#'   * An sf object: used as the point; leave `coordinates` as `NULL`.
+#'   * `NULL`: the point is made from `coordinates` and `crs`.
+#'
+#'   Giving both `sf` and `coordinates` stops with an error. Default: `NULL`.
+#' @param coordinates Numeric vector of length 2 or `NULL`. The longitude and
+#'   latitude (or x and y in `crs`), in that order. Only used when `sf` is
+#'   `NULL`. Default: `NULL`.
+#' @param crs Integer, string or `NULL`. The CRS of `coordinates`, e.g.
+#'   `4326`. Needed when `coordinates` is used. Default: `NULL`.
+#' @param snap Logical. Whether to always move the point to the nearest
+#'   NHDPlus flowline.
+#'   * `TRUE`: always snaps, so the result is the watershed of the nearest
+#'     flowline, even for a point on a small tributary.
+#'   * `FALSE`: snaps only points within the flowline buffer, as described
+#'     above.
+#'
+#'   Default: `FALSE`.
+#'
+#' @return An sf polygon of the watershed with an `area` column (square
+#'   meters), usually in the CRS of the input point.
 #' @export
+#' @seealso [nldi_finder()] for the basin of a USGS gage; [get_aoi_source()],
+#'   which uses this for surface water and shallow groundwater sources.
+#' @examplesIf interactive()
+#' # Uses NHDPlus web services, so it needs internet
+#' ws <- getXYWatersheds(coordinates = c(-112.9877, 37.2163), crs = 4326)
+#' ws$area / 1e6 # km2
+
 getXYWatersheds <- function(sf = NULL, coordinates = NULL, crs = NULL, snap = FALSE){
   
   if(is.null(sf)){

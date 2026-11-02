@@ -2,10 +2,44 @@
 % Please edit documentation in R/getBuildings.R
 \name{getBuildings}
 \alias{getBuildings}
-\title{Import NPS buildings}
+\title{NPS buildings in a park}
 \usage{
 getBuildings(park_boundary, dist = 0)
 }
+\arguments{
+\item{park_boundary}{sf object. The park boundary, as polygons with a
+\code{UNIT_CODE} column, e.g. from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+
+\item{dist}{Numeric. The distance to buffer \code{park_boundary} by, in meters
+for a longitude/latitude CRS (like the park boundaries) or in the CRS
+units otherwise.
+\itemize{
+\item \code{0}: only buildings inside the boundary.
+\item A positive distance: also buildings within that distance of it.
+}
+
+Default: \code{0}.}
+}
+\value{
+An sf object of building polygons (in the CRS of \code{park_boundary}),
+with the layer's columns and \code{UNIT_CODE}.
+}
 \description{
-https://public-nps.opendata.arcgis.com/datasets/nps::nps-buildings-web-mercator/explore?location=21.734632%2C-117.659450%2C4.08
+Downloads the NPS Buildings layer (all parks) from the NPS open data
+portal
+(\url{https://public-nps.opendata.arcgis.com/datasets/nps::nps-buildings-web-mercator}),
+so it needs internet, and keeps the buildings inside \code{park_boundary} and
+its buffer.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads the park boundaries and every NPS building, so it needs
+# internet and takes a few minutes
+zion <- wavacore::getParkBoundary("ZION")
+buildings <- getBuildings(zion)
+nrow(buildings)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}} for the boundary.
 }

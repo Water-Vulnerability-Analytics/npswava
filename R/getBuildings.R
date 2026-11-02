@@ -1,8 +1,33 @@
-#' Import NPS buildings
-#' 
-#' https://public-nps.opendata.arcgis.com/datasets/nps::nps-buildings-web-mercator/explore?location=21.734632%2C-117.659450%2C4.08
-
+#' @title NPS buildings in a park
+#'
+#' @description
+#' Downloads the NPS Buildings layer (all parks) from the NPS open data
+#' portal
+#' (<https://public-nps.opendata.arcgis.com/datasets/nps::nps-buildings-web-mercator>),
+#' so it needs internet, and keeps the buildings inside `park_boundary` and
+#' its buffer.
+#'
+#' @param park_boundary sf object. The park boundary, as polygons with a
+#'   `UNIT_CODE` column, e.g. from [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `park_boundary` by, in meters
+#'   for a longitude/latitude CRS (like the park boundaries) or in the CRS
+#'   units otherwise.
+#'   * `0`: only buildings inside the boundary.
+#'   * A positive distance: also buildings within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return An sf object of building polygons (in the CRS of `park_boundary`),
+#'   with the layer's columns and `UNIT_CODE`.
 #' @export
+#' @seealso [wavacore::getParkBoundary()] for the boundary.
+#' @examplesIf interactive()
+#' # Downloads the park boundaries and every NPS building, so it needs
+#' # internet and takes a few minutes
+#' zion <- wavacore::getParkBoundary("ZION")
+#' buildings <- getBuildings(zion)
+#' nrow(buildings)
+
 getBuildings <- function(park_boundary, dist = 0){
 
   #install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")

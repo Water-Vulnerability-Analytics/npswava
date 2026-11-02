@@ -2,34 +2,60 @@
 % Please edit documentation in R/get_aoi_source.R
 \name{get_aoi_source}
 \alias{get_aoi_source}
-\title{This function takes in an sf version of the NPS water supply database "source"
-table filtered for select sites and returns an area of interest for each 
-source. The AOI is either the watershed associated with the source location
-(if the source is shallow GW or SW) or the geological formation extent if
-the source is deep groundwater, spring, or karst aquifer.
-Inputs:}
+\title{Area of interest for each water source}
 \usage{
 get_aoi_source(sf = source_table_locs)
 }
 \arguments{
-\item{sf}{sf dataframe containing point geometry AND
-source_type column. Valid source types include:
-"Shallow Groundwater"
-"River/Stream"
-"Karst Aquifer and Spring"
-"Spring"
-"Deep Groundwater"
-Note, this will most likely be source_table_locs}
+\item{sf}{sf object. The water sources, as points with \code{source_type},
+\code{source_infrastructure} and \code{aquifer_name} columns. Default:
+\code{source_table_locs}, an object of that name in the calling environment
+(as in the deep-dive reports); there is no such object in the package,
+so pass the sources.}
 }
 \value{
-sf input dataframe with additional "aoi" columns containing
-        sf geometry and metadata for source area
+\code{sf} with two columns added: \code{method} (\code{"SHALLOW METHOD"},
+\code{"DEEP METHOD"} or \code{"OTHER"}) and \code{aoi}, a list column with one sf
+object per source holding its area(s), with \code{type} (\code{"Watershed"} or
+\code{"Formation"}) and the watershed or geologic unit columns.
 }
 \description{
-This function takes in an sf version of the NPS water supply database "source"
-table filtered for select sites and returns an area of interest for each 
-source. The AOI is either the watershed associated with the source location
-(if the source is shallow GW or SW) or the geological formation extent if
-the source is deep groundwater, spring, or karst aquifer.
-Inputs:
+Finds the area each water source draws from, using its \code{source_type}:
+\itemize{
+\item \code{"Shallow Groundwater"} and \code{"River/Stream"}: the watershed upstream of
+the source, from \code{\link[=getXYWatersheds]{getXYWatersheds()}}. For wells
+(\code{source_infrastructure == "Well"}) the youngest geologic unit at the
+point (\code{\link[=get_rockd]{get_rockd()}}) is added.
+\item \code{"Deep Groundwater"}, \code{"Spring"} and \code{"Karst Aquifer and Spring"}: the
+geologic units at the point (\code{\link[=get_rockd]{get_rockd()}}). If \code{aquifer_name} is given,
+the formation is looked up with \code{\link[=get_formation_info]{get_formation_info()}} and the units are
+narrowed to those whose name matches, or else to those within 5 to 50
+million years of its age range. Units larger than 10,000 km2 are
+dropped.
+\item Any other type: no area (an empty entry).
+}
+
+The source types are matched exactly, in title case. The current WSD from
+\code{\link[wavacore:get_wsd]{wavacore::get_wsd()}} uses lowercase types (e.g. \code{"shallow groundwater"}),
+so convert them first. It needs internet, and makes
+several requests per source.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries NHDPlus and Macrostrat, so it needs internet
+src <- sf::st_as_sf(
+  data.frame(source_type = c("River/Stream", "Deep Groundwater"),
+             source_infrastructure = c("Surface Intake", "Well"),
+             aquifer_name = c(NA, "Navajo Sandstone"),
+             lon = c(-112.9877, -112.95), lat = c(37.2163, 37.25)),
+  coords = c("lon", "lat"), crs = 4326
+)
+src <- get_aoi_source(src)
+src$method
+lapply(src$aoi, function(x) unique(x$type))
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=getXYWatersheds]{getXYWatersheds()}}, \code{\link[=get_rockd]{get_rockd()}} and \code{\link[=get_formation_info]{get_formation_info()}},
+which it calls.
 }

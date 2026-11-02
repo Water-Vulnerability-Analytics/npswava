@@ -2,32 +2,48 @@
 % Please edit documentation in R/get_surficial_geology.R
 \name{get_surficial_geology}
 \alias{get_surficial_geology}
-\title{Fetch Surficial Geology Features via ArcGIS REST API}
+\title{USGS surficial geology over an area}
 \usage{
 get_surficial_geology(aoi)
 }
 \arguments{
-\item{aoi}{An sf or sfc object representing the spatial area to filter by.}
+\item{aoi}{sf, sfc or sfg object with a CRS. The area of interest; its
+bounding box (in longitude/latitude) is queried. Stops with an error if
+it isn't a spatial object or has no CRS. Required.}
 }
 \value{
-An sf object containing the overlapping geologic features. Returns NULL if the 
-request fails or 0 rows if no features intersect the AOI.
+An sf object of geologic unit polygons with the layer and map
+unit columns. Has 0 rows (with a message) if nothing intersects the
+area, and is \code{NULL} (with a message) if the unit request fails.
 }
 \description{
-This function queries the National Earth Surface v2 FeatureServer and returns
-geologic units that intersect a provided Area of Interest (AOI). It performs 
-server-side spatial filtering to minimize data transfer.
+Downloads the geologic units of the USGS National Earth Surface v2 map
+(Cooperative National Geologic Map) that intersect the bounding box of
+\code{aoi}, from its ArcGIS feature service, so it needs internet. The units
+(layer 6) are joined to the map unit descriptions (layer 12) by \code{MapUnit}.
+Source: \url{https://usgs.maps.arcgis.com/home/item.html?id=8323586344b747c6b44731d399ec1307}.
+
+The service returns at most 1,000 or 2,000 features per request. If the
+number returned is a multiple of 1,000 the function warns that the result
+may be cut off; use a smaller area.
+
+Citations: Johnstone, S.A., Colgan, J.P., and Roe, W.P. (2025). A
+synthesis engine for constructing geologic maps of the United States.
+U.S. Geological Survey Data Report 1210, \url{https://doi.org/10.3133/dr1210}.
+Colgan, J.P. et al. (2025). Cooperative National Geologic Map: Earth's
+surface geology. U.S. Geological Survey data release,
+\url{https://doi.org/10.5066/P146VGVM}.
 }
-\details{
-REST SOURCE: https://usgs.maps.arcgis.com/home/item.html?id=8323586344b747c6b44731d399ec1307
-
-Relevant Citations:
-Johnstone, S.A., Colgan, J.P., and Roe, W.P., 2025, A synthesis engine for 
-constructing geologic maps of the United States: U.S. Geological Survey Data 
-Report 1210, 36 p., https://doi.org/10.3133/dr1210. 
-
-Colgan, J.P., Johnstone, S.A., Campos, J.-M., Platt, B.W., Hirtz, J.A.M., 
-Barrette, N.C., and Roe, W.P., 2025, Cooperative National Geologic 
-Map—Earth’s surface geology: U.S. Geological Survey data release, 
-https://doi.org/10.5066/P146VGVM.
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries the USGS feature service, so it needs internet
+box <- sf::st_as_sfc(sf::st_bbox(
+  c(xmin = -112.99, ymin = 37.20, xmax = -112.95, ymax = 37.24), crs = 4326
+))
+geology <- get_surficial_geology(box)
+table(geology$MapUnit)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_rockd]{get_rockd()}} and \code{\link[=get_rockd_aoi]{get_rockd_aoi()}} for Macrostrat geology.
 }

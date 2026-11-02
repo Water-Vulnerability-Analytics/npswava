@@ -2,7 +2,7 @@
 % Please edit documentation in R/getNOAA.R
 \name{getNOAA}
 \alias{getNOAA}
-\title{Pull weather station data for parks}
+\title{NOAA GHCN-Daily weather data for stations in an area}
 \usage{
 getNOAA(
   aoi,
@@ -15,22 +15,59 @@ getNOAA(
 )
 }
 \arguments{
-\item{aoi}{An sf polygon/multipolygon object, preferably a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons, e.g. a park
+boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{startDate}{minimum date for data retrieval. Either 'first' (default), which calculated the minimum year for sites of interest,
-or specify a minimum year in "YYYY-MM-DD" format}
+\item{park}{String. The park code, used only to name the file when
+\code{save = TRUE} (\verb{<park>_noaa.shp}). Required when \code{save = TRUE}.}
 
-\item{endDate}{maximum date for data retrieval}
+\item{startDate}{String. The first date to download.
+\itemize{
+\item \code{"first"}: January 1 of the earliest year any of the stations starts.
+\item A date, \code{"YYYY-MM-DD"}.
+}
 
-\item{save}{Whether to save the resulting file (TRUE/FALSE)}
+Default: \code{"first"}.}
 
-\item{path}{If `save == TRUE`, the file path to save to}
+\item{endDate}{Date or string (\code{"YYYY-MM-DD"}). The last date to download.
+Default: \code{Sys.Date()}.}
 
-\item{noaa_key}{Your API NOAA key retrieved (for free) from: https://www.ncdc.noaa.gov/cdo-web/token}
+\item{variables}{Character vector. The GHCN-Daily variables to download,
+passed to \code{var} of \code{\link[rnoaa:meteo_pull_monitors]{rnoaa::meteo_pull_monitors()}}, e.g.
+\code{c("PRCP", "TMAX", "TMIN")}, or \code{"all"} for every variable. Default:
+\code{"all"}.}
+
+\item{save}{Logical. Whether to write the result to a shapefile.
+\itemize{
+\item \code{TRUE}: writes \verb{<path>/<park>_noaa.shp}, replacing an existing file.
+\item \code{FALSE}: writes nothing.
+}
+
+Default: \code{FALSE}.}
+
+\item{path}{String or \code{NULL}. The folder for the shapefile when
+\code{save = TRUE}; ignored otherwise. Default: \code{NULL}.}
 }
 \value{
-An sf object of weather stations within given spatial boundary and attributes
+An sf object of station points, one row per station and day, with
+\code{id}, \code{date}, one column per variable (in GHCN-Daily units), \code{elevation}
+and \code{name}.
 }
 \description{
-This function imports NOAA weather station data
+Finds the GHCN-Daily weather stations inside \code{aoi} (\code{\link[rnoaa:ghcnd_stations]{rnoaa::ghcnd_stations()}})
+and downloads their daily data with \code{\link[rnoaa:meteo_pull_monitors]{rnoaa::meteo_pull_monitors()}}, so it
+needs internet and the rnoaa package (in Suggests, installed from GitHub).
+Depending on the dates and the number of stations this can take a while.
+}
+\examples{
+\dontshow{if (interactive() && requireNamespace("rnoaa", quietly = TRUE)) withAutoprint(\{ # examplesIf}
+# Downloads the station list and the daily data, so it needs internet
+zion <- wavacore::getParkBoundary("ZION")
+weather <- getNOAA(zion, park = "ZION", startDate = "2020-01-01",
+                   endDate = "2020-12-31", variables = c("PRCP", "TMAX"))
+head(weather)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=getSNOTEL]{getSNOTEL()}} for SNOTEL and SCAN stations.
 }

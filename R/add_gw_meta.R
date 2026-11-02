@@ -1,8 +1,31 @@
-#' Adds well and aquifer metadata to nwis_groundwater dataframe based on USGS site_no 
-#' @param nwis_groundwater a list of nwis groundwater sites returned and filtered from function 'listNWIS'
-#'              
-
+#' @title Add well and aquifer details to NWIS groundwater sites
+#'
+#' @description
+#' Adds site details from [dataRetrieval::readNWISsite()] (state, HUC, basin,
+#' topographic setting, drainage areas, aquifer codes and well depth) and the
+#' aquifer names and types from [dataRetrieval::read_waterdata_metadata()]
+#' to a table of groundwater sites, so it needs internet. Sites are requested
+#' in groups of up to 35,000.
+#'
+#' @param nwis_groundwater Data frame or sf object. Groundwater sites with a
+#'   `site_no` column, e.g. [listNWIS()] output filtered to
+#'   `data_type_cd == "gw"`. Required.
+#'
+#' @return `nwis_groundwater` with these columns added: `state_cd`,
+#'   `huc_cd`, `basin_cd`, `topo_cd`, `drain_area_va`,
+#'   `contrib_drain_area_va`, `nat_aqfr_cd`, `aqfr_cd`, `aqfr_type_cd`,
+#'   `well_depth_va` (feet), and the columns of the aquifer code, national
+#'   aquifer code and aquifer type tables.
 #' @export
+#' @seealso [listNWIS()] to find the sites; [aquifer_volume()].
+#' @examplesIf interactive()
+#' # Queries NWIS, so it needs internet
+#' zion <- wavacore::getParkBoundary("ZION")
+#' wells <- listNWIS(aoi = zion, dist = 5000)
+#' wells <- wells[wells$data_type_cd == "gw", ]
+#' wells <- add_gw_meta(wells)
+#' head(wells[, c("site_no", "aqfr_cd", "well_depth_va")])
+
 add_gw_meta <- function(nwis_groundwater) {
 
 # Define function to get well metadata

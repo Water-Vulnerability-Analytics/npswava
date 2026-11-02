@@ -1,24 +1,51 @@
-#' This function uses the get_rockd.R function to pull geologic layers from 
-#' the Macrostrat API over an area of interest (aoi). Because the API doesn't have a
-#' native method for pulling from an aoi, the function first converts a polygon
-#' aoi into a gridded set of points. Then, it pulls geologic outcrop
-#' polygons for the points successively. After pulling for a point, it masks
-#' remaining points that overlap the outcrop extent to avoid redundancy in
-#' pulls. Because multiple geologic products typically exist for a given point,
-#' (and therefore multiple polygons of varying size and resolution), this function
-#' allows users to select the resolution they want (assuming the smallest extent
-#' is the highest resolution). Generally speaking, if the map has a
-#' smaller extent, the resolution is finer (think geologic quadrangle compared
-#' to regional or state-wide maps).
-#' 
-#' @param aoi An `sf` polygon object containing area to extract outcrop extents for.
-#' @param crop If true, crops outcrop extent to aoi. False, keeps expansive bounds.
-#' @param resolution Set resolution for geologic layers to pull. Either "tiny",
-#' "small", "medium", or "large" in order of decreasing resolution. I.e., 
-#' tiny = coarse resolution (quicker), large = finest resolution (takes much longer)
-#' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
-
+#' @title Geologic map units over an area (Macrostrat)
+#'
+#' @description
+#' Gets the Macrostrat geologic map units (<https://macrostrat.org/>) over
+#' an area, so it needs internet. The API only answers point queries, so the
+#' function puts a 100 x 100 grid of points over `aoi`, drops points outside
+#' the US (using [tigris::states()], with a small inland buffer because
+#' coastal points often fail), and queries the points one at a time with
+#' [get_rockd()]. After each query it drops the remaining points that the
+#' returned units already cover. A point often has units from several map
+#' sources; only the source at `resolution` is kept, or the next coarser one
+#' if it isn't available (with a message at the end).
+#'
+#' It turns off s2 geometry with [sf::sf_use_s2()] while it runs (the
+#' geologic polygons are often invalid) and turns it back on at the end. It
+#' shows a progress bar and can take a long time for large areas or fine
+#' resolutions.
+#'
+#' @param aoi sf object. The area of interest, as polygons. Required.
+#' @param crop Logical. Whether to cut the units to the area.
+#'   * `TRUE`: crops the result to the bounding box of `aoi`.
+#'   * `FALSE`: returns the whole units, which can extend far beyond it.
+#'
+#'   Default: `TRUE`.
+#' @param resolution String. The map scale to keep, one of:
+#'   * `"tiny"`: global maps, coarsest and quickest;
+#'   * `"small"`: national or regional maps;
+#'   * `"medium"`: state maps;
+#'   * `"large"`: local (e.g. quadrangle) maps, finest and slowest.
+#'
+#'   Pass one value. Default: `c("tiny", "small", "medium", "large")`, which
+#'   stops with an error, so a value must be given.
+#'
+#' @return An sf object of geologic unit polygons (CRS 4326) with the
+#'   Macrostrat columns; the age columns (`b_age`, `t_age`, `b_int_id`,
+#'   `t_int_id`, `b_int_age`, `t_int_age`) are character.
 #' @export
+#' @seealso [get_rockd()] for points; [get_surficial_geology()] for USGS
+#'   surficial geology.
+#' @examplesIf interactive()
+#' # Queries the Macrostrat API many times, so it needs internet and takes a
+#' # few minutes even for a small area
+#' box <- sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(
+#'   c(xmin = -112.99, ymin = 37.20, xmax = -112.95, ymax = 37.24), crs = 4326
+#' )))
+#' geology <- get_rockd_aoi(box, resolution = "medium")
+#' unique(geology$name)
+
 get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "medium", "large")) {
   
   # #' Function to convert aoi to gridded points

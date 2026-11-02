@@ -2,8 +2,7 @@
 % Please edit documentation in R/select_cfs_deep_dive.R
 \name{select_cfs_deep_dive}
 \alias{select_cfs_deep_dive}
-\title{defined x and y variables, typically deltas of two variables from baseline 
-to future periods. Fxn has added arguments to label futures and plot}
+\title{Pick climate futures from model changes (NPS PCA method)}
 \usage{
 select_cfs_deep_dive(
   df,
@@ -24,30 +23,117 @@ select_cfs_deep_dive(
 )
 }
 \arguments{
-\item{df}{dataframe of differentials to plot on x and y axis}
+\item{df}{Data frame. One row per model run, with a \code{GCM} column of
+\code{"<model>.<scenario>"} names as in the skill table (e.g.
+\code{"CCSM4.rcp45"}), an \code{RCP} column (for the plot), and the \code{x} and \code{y}
+columns. Required.}
 
-\item{x}{x-column name in df containing variable for x-axis in PCA selection}
+\item{x}{String. The name of the column for the x axis, e.g. the change
+in mean temperature. Required.}
 
-\item{y}{y-column name in df containing variable for y-axis in PCA selection}
+\item{y}{String. The name of the column for the y axis, e.g. the change
+in precipitation. Required.}
 
-\item{x_name}{user-defined label for x-axis, defaults to x if none provided}
+\item{x_name}{String. The label for \code{x} in the climate future names and
+the plot. Default: \code{x}.}
 
-\item{y_name}{user-defined label for y-axis, defaults to y if none provided}
+\item{y_name}{String. The label for \code{y}. Default: \code{y}.}
 
-\item{high_x}{character string for what to call high x, e.g., hot}
+\item{high_x}{String or \code{NULL}. The name for high \code{x}, e.g. \code{"Hot"}.
+\itemize{
+\item A string: used as is in the climate future names.
+\item \code{NULL}: \code{"High <x_name>,"}.
+}
 
-\item{low_x}{character string for what to call low x, e.g., warm}
+Default: \code{NULL}.}
 
-\item{high_y}{character string for what to call high y, e.g., wet}
+\item{low_x}{String or \code{NULL}. The name for low \code{x}, e.g. \code{"Warm"}; \code{NULL}
+gives \code{"Low <x_name>,"}. Default: \code{NULL}.}
 
-\item{low_y}{character string for what to call low y, e.g., dry}
+\item{high_y}{String or \code{NULL}. The name for high \code{y}, e.g. \code{"Wet"};
+\code{NULL} gives \code{"High <y_name>"}. Default: \code{NULL}.}
 
-\item{to_plot}{logical varialbe whether to return plot. If TRUE, returns a}
+\item{low_y}{String or \code{NULL}. The name for low \code{y}, e.g. \code{"Dry"}; \code{NULL}
+gives \code{"Low <y_name>"}. Default: \code{NULL}.}
 
-\item{park}{if to_plot is TRUE, the park name to put in the plot title
-list with first}
+\item{to_plot}{Logical. Whether to also return a plot.
+\itemize{
+\item \code{TRUE}: returns a list of the selected models and a ggplot scatter
+plot of every model, with the quartile box, the means and the selected
+models circled.
+\item \code{FALSE}: returns only the selected models.
+}
+
+Default: \code{TRUE}.}
+
+\item{park}{String or \code{NULL}. The park name for the plot title. Default:
+\code{NULL}.}
+
+\item{fill_var}{String. The column of \code{df} that colors the points.
+\itemize{
+\item \code{"CF"}: the climate future, with set colors.
+\item Another numeric column: a yellow-to-red gradient.
+}
+
+Default: \code{"CF"}.}
+
+\item{fill_var_name}{String. The legend title for \code{fill_var}. Default:
+\code{"Climate Future"}.}
+
+\item{region}{String. The NPS region in the skill table whose skill
+ranks are used, e.g. \code{"SWR"}. Default: \code{"SWR"}.}
+
+\item{highlight}{Character vector or \code{NULL}. Climate futures (\code{CF}
+values) whose selected models get a gold circle in the plot; \code{NULL} for
+none. Default: \code{NULL}.}
+}
+\value{
+With \code{to_plot = FALSE}, a tibble of the selected models with
+\code{GCM}, \code{CF}, and the \code{x} and \code{y} columns. With \code{to_plot = TRUE}, a list
+of that tibble and the ggplot.
 }
 \description{
-defined x and y variables, typically deltas of two variables from baseline 
-to future periods. Fxn has added arguments to label futures and plot
+Picks a small set of climate models that span the range of projected
+change, following the NPS climate futures method. Each model run in \code{df}
+has a change in two variables (\code{x} and \code{y}, e.g. temperature and
+precipitation):
+\enumerate{
+\item Only models ranked high skill (rank 18 or better) for \code{region} in the
+NPS GCM skill table are kept. The table is read from GitHub
+(rossyndicate/CCRP_automated_climate_futures), so it needs internet.
+\item Each model gets a climate future (\code{CF}) from the means and quartiles of
+\code{x} and \code{y}: \code{"Central"} or one of the four corners (e.g. "Low x, High
+y").
+\item A principal component analysis of \code{x} and \code{y} picks the models at the
+minimum and maximum of PC1 and PC2. A missing corner is filled with the
+model nearest that corner, and a model picked twice is dropped.
+}
+
+It prints the means of \code{y} and \code{x}.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Reads the GCM skill table from GitHub, so it needs internet
+models <- c("HadGEM2-ES365", "HadGEM2-CC365", "CNRM-CM5", "CCSM4", "CanESM2",
+            "MIROC5", "IPSL-CM5A-MR", "NorESM1-M", "bcc-csm1-1-m",
+            "IPSL-CM5A-LR", "CSIRO-Mk3-6-0", "BNU-ESM", "MRI-CGCM3",
+            "GFDL-ESM2M", "GFDL-ESM2G", "MIROC-ESM", "inmcm4",
+            "MIROC-ESM-CHEM", "bcc-csm1-1", "IPSL-CM5B-LR")
+set.seed(1)
+deltas <- data.frame(GCM = paste0(rep(models, 2), ".", rep(c("rcp45", "rcp85"), each = 20)),
+                     RCP = rep(c("rcp45", "rcp85"), each = 20),
+                     delta_tmean = c(runif(20, 1, 3), runif(20, 2, 5)),
+                     delta_ppt = runif(40, -15, 15))
+
+futures <- select_cfs_deep_dive(deltas, x = "delta_tmean", y = "delta_ppt",
+                                x_name = "Temperature", y_name = "Precipitation",
+                                high_x = "Hot", low_x = "Warm",
+                                high_y = "Wet", low_y = "Dry",
+                                park = "ZION")
+futures[[1]]
+futures[[2]]
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=get_climate_future]{get_climate_future()}}, which downloads the selected models.
 }

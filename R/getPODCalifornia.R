@@ -1,12 +1,43 @@
-#' Import and clean California Water Rights Spatial Data
-#' This function imports geospatial data from the eWRIMS database (https://waterrightsmaps.waterboards.ca.gov/viewer/index.html?viewer=eWRIMS.eWRIMS_gvh#)
-#' Uses Rselenius so java and firefox need to  be installed on your local computer.
-#' 
-#' @param aoi An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.
-#' @param dist The distance (in the same units used in  `park`) to buffer around spatial object `park`
-#' 
-#' @return An sf object of points of diversion within given spatial boundary and attributes
+#' @title California water rights points of diversion in an area
+#'
+#' @description
+#' Downloads the California eWRIMS points of diversion
+#' (<https://waterrightsmaps.waterboards.ca.gov/viewer/index.html?viewer=eWRIMS.eWRIMS_gvh>)
+#' by driving a headless Firefox with RSelenium, joins them to the point
+#' attributes, and keeps those inside `aoi` and its buffer. It needs
+#' internet, the RSelenium package (in Suggests), Java and Firefox.
+#'
+#' It creates a `temp_ewrims` folder in the working directory for the
+#' download and deletes it at the end. It also sets
+#' `options(timeout = 1000)` (or higher) for the session.
+#'
+#' @param aoi sf object. The area of interest, as polygons with a
+#'   `UNIT_CODE` column, e.g. a park boundary from
+#'   [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by before selecting
+#'   features, in meters for a longitude/latitude CRS (like the park
+#'   boundaries) or in the CRS units otherwise.
+#'   * `0`: only features inside `aoi`.
+#'   * A positive distance: also features within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return An sf object of points (CRS NAD83), one row per point of diversion
+#'   and attribute record in the area, with `POD_ID`, `LATITUDE`,
+#'   `LONGITUDE`, `DIVERSION_SITE_NAME`, `SOURCE_NAME`, the attribute columns,
+#'   `UNIT_CODE`, `park_right` (`"Park"` when `LAST_NAME` contains "National
+#'   Park", otherwise `"Non-park"`) and `within_park` (`"Within"` or
+#'   `"Outside"`).
 #' @export
+#' @seealso The other state functions, e.g. [getPODUtah()].
+#' @examples
+#' \dontrun{
+#' # Not run: needs RSelenium, Java and Firefox, and writes a temporary
+#' # folder in the working directory
+#' jotr <- wavacore::getParkBoundary("JOTR")
+#' pods <- getPODCalifornia(jotr, dist = 1000)
+#' }
+
 getPODCalifornia <- function(aoi, dist=0){
   
   options(timeout = max(1000, getOption("timeout")))

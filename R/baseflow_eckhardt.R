@@ -1,35 +1,48 @@
-#' Eckhardt Digital Filter for Baseflow Separation
+#' @title Separate baseflow with the Eckhardt digital filter
 #'
-#' Performs baseflow separation on daily streamflow data using the 
-#' two-parameter Eckhardt digital filter.
+#' @description
+#' Splits daily streamflow into baseflow and quickflow with the
+#' two-parameter recursive digital filter of Eckhardt (2005):
 #'
-#' @param q A numeric vector of daily streamflow (discharge).
-#' @param alpha A numeric value (0 to 1) representing the recession constant. 
-#'   Typical values are 0.95 to 0.99.
-#' @param BFImax A numeric value representing the maximum baseflow index 
-#'   attainable for the specific catchment.
-#' @param bf_0 Baseflow at time 0. If NULL (default), assume 50% of discharge
+#' `b[t] = ((1 - BFImax) * alpha * b[t-1] + (1 - alpha) * BFImax * q[t]) / (1 - alpha * BFImax)`
 #'
-#' @return A data frame containing the original discharge (q), 
-#'   calculated baseflow (bf), and quickflow (qf).
-#' 
-#' @details
-#' The filter equation is defined as:
-#' $$b_t = \frac{(1 - BFI_{max}) \alpha b_{t-1} + (1 - \alpha) BFI_{max} q_t}{1 - \alpha BFI_{max}}$$
-#' where $b_t \le q_t$.
-#' 
-#' Alpha ($\alpha$): This is the recession constant. This is equivalent to tao_s.
-#' If recession is slow (typical for groundwater-dominated springs), $\alpha$ 
-#' will be closer to 0.99.
+#' Baseflow is kept between 0 and the streamflow of the same day.
 #'
-#'BFImax: This is a "conceptual" maximum.
-#'    0.80: For perennial streams with porous aquifers.
-#'    0.50: For ephemeral streams with high-intensity runoff.
-#'    0.25: For "flashy" watersheds with hard-rock geology.
+#' Typical values:
+#' * `alpha` (the recession constant): 0.95 to 0.99; closer to 0.99 when
+#'   recession is slow, as in groundwater-fed springs.
+#' * `BFImax` (the largest baseflow index the catchment can reach): about
+#'   0.80 for perennial streams with porous aquifers, 0.50 for ephemeral
+#'   streams with intense runoff, 0.25 for flashy hard-rock catchments.
 #'
+#' @param q Numeric vector. Daily streamflow, in time order and without
+#'   gaps, at least 2 values. Required.
+#' @param alpha Numeric from 0 to 1. The recession constant. Default:
+#'   `0.98`.
+#' @param BFImax Numeric from 0 to 1. The maximum baseflow index. Default:
+#'   `0.8`.
+#' @param bf_0 Numeric or `NULL`. The baseflow on the first day.
+#'   * A number: used as the first baseflow value. Stops with an error unless
+#'     it is less than `q[1]`.
+#'   * `NULL`: uses `q[1] * BFImax`.
 #'
-#' @noRd
+#'   Default: `NULL`.
+#'
+#' @return A data frame with one row per day and columns `q` (streamflow),
+#'   `bf` (baseflow) and `quickflow` (`q - bf`).
+#' @references
+#' Eckhardt, K. (2005). How to construct recursive digital filters for
+#'   baseflow separation. Hydrological Processes, 19(2), 507-515.
 #' @export
+#' @seealso [listNWIS()] to find streamflow gages.
+#' @examples
+#' # A storm on top of slowly falling flow
+#' q <- c(10, 9.5, 9, 30, 22, 15, 12, 10.5, 9.8, 9.2)
+#' baseflow_eckhardt(q)
+#'
+#' # Slower recession and a set starting baseflow
+#' baseflow_eckhardt(q, alpha = 0.99, BFImax = 0.5, bf_0 = 5)
+
 baseflow_eckhardt <- function(q, alpha = 0.98, BFImax = 0.8, bf_0 = NULL) {
   
   

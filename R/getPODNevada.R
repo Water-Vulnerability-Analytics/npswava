@@ -1,11 +1,34 @@
-#' Import and clean Nevada Water Rights Spatial Data. Function still local -- need to change this!
-#' 
+#' @title Nevada water rights points of diversion in an area
 #'
-#' @param aoi An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.
-#' @param dist The distance (in the same units used in  `park`) to buffer around spatial object `park`
-#' 
-#' @return An sf object of points of diversion within given spatial boundary and attributes
+#' @description
+#' Reads the Nevada points of diversion from two local files in the shared
+#' data folder, `all/POD_Permits_All.shp` and
+#' `all/Water_Rights_Points_of_Diversion.csv`, joins them by application
+#' number (`app`), and keeps the points inside `aoi` and its buffer. It
+#' stops with an error if either file is missing.
+#'
+#' @param aoi sf object. The area of interest, as polygons with a
+#'   `UNIT_CODE` column, e.g. a park boundary from
+#'   [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by before selecting
+#'   features, in meters for a longitude/latitude CRS (like the park
+#'   boundaries) or in the CRS units otherwise.
+#'   * `0`: only features inside `aoi`.
+#'   * A positive distance: also features within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return An sf object of points (CRS NAD83), one row per point of diversion
+#'   in the area, with the shapefile and table columns, the `aoi` columns and
+#'   `PARK_RIGHT` (`"Park"` when `owner_name` contains "National Park",
+#'   otherwise `"Non-park"`).
 #' @export
+#' @seealso The other state functions, e.g. [getPODUtah()].
+#' @examplesIf file.exists(wavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()
+#' grba <- wavacore::getParkBoundary("GRBA")
+#' pods <- getPODNevada(grba, dist = 1000)
+#' table(pods$PARK_RIGHT)
+
 getPODNevada <- function(aoi, dist=0){
   
   # add buffer around park boundary  

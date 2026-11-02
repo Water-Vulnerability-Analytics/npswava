@@ -2,18 +2,45 @@
 % Please edit documentation in R/getPODNevada.R
 \name{getPODNevada}
 \alias{getPODNevada}
-\title{Import and clean Nevada Water Rights Spatial Data. Function still local -- need to change this!}
+\title{Nevada water rights points of diversion in an area}
 \usage{
 getPODNevada(aoi, dist = 0)
 }
 \arguments{
-\item{aoi}{An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons with a
+\code{UNIT_CODE} column, e.g. a park boundary from
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in the same units used in  `park`) to buffer around spatial object `park`}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
+features, in meters for a longitude/latitude CRS (like the park
+boundaries) or in the CRS units otherwise.
+\itemize{
+\item \code{0}: only features inside \code{aoi}.
+\item A positive distance: also features within that distance of it.
+}
+
+Default: \code{0}.}
 }
 \value{
-An sf object of points of diversion within given spatial boundary and attributes
+An sf object of points (CRS NAD83), one row per point of diversion
+in the area, with the shapefile and table columns, the \code{aoi} columns and
+\code{PARK_RIGHT} (\code{"Park"} when \code{owner_name} contains "National Park",
+otherwise \code{"Non-park"}).
 }
 \description{
-Import and clean Nevada Water Rights Spatial Data. Function still local -- need to change this!
+Reads the Nevada points of diversion from two local files in the shared
+data folder, \code{all/POD_Permits_All.shp} and
+\code{all/Water_Rights_Points_of_Diversion.csv}, joins them by application
+number (\code{app}), and keeps the points inside \code{aoi} and its buffer. It
+stops with an error if either file is missing.
+}
+\examples{
+\dontshow{if (file.exists(wavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()) withAutoprint(\{ # examplesIf}
+grba <- wavacore::getParkBoundary("GRBA")
+pods <- getPODNevada(grba, dist = 1000)
+table(pods$PARK_RIGHT)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+The other state functions, e.g. \code{\link[=getPODUtah]{getPODUtah()}}.
 }

@@ -17,7 +17,7 @@ Description: Functions used by the park-specific deep-dive water supply
     visitation data, and a few analysis helpers.
 License: MIT + file LICENSE
 Encoding: UTF-8
-Roxygen: list(markdown = FALSE)
+Roxygen: list(markdown = TRUE)
 URL: https://github.com/Water-Vulnerability-Analytics/wavadeepdive
 BugReports: https://github.com/Water-Vulnerability-Analytics/wavadeepdive/issues
 Remotes:
@@ -59,6 +59,7 @@ Imports:
     vctrs,
     wavacore
 Suggests:
+    curl,
     RSelenium,
     rnoaa,
     testthat,

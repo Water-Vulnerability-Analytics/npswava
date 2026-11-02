@@ -1,4 +1,25 @@
+#' @title NHDPlus High Resolution flowlines in an area
+#'
+#' @description
+#' Finds the HUC4 watersheds that overlap `aoi` with
+#' [nhdplusTools::get_huc()] (so it needs internet), reads the `NHDFlowline`
+#' layer of each one's NHDPlus HR geodatabase from the shared data folder
+#' (`all/nhdplushr/<HU2>/<HU4>_HU4_GDB.gdb`), and keeps the flowlines that
+#' intersect `aoi`.
+#'
+#' @param aoi sf object. The area of interest, as polygons, e.g. a park
+#'   boundary from [wavacore::getParkBoundary()]. Required.
+#'
+#' @return An sf object of flowlines (CRS NAD83, Z and M dropped) with the
+#'   NHDPlus HR flowline columns.
 #' @export
+#' @seealso [getXYWatersheds()] and [nldi_finder()] for watersheds.
+#' @examplesIf interactive() && dir.exists(wavacore::wava_data_path("all", "nhdplushr"))
+#' # Reads the NHDPlus HR geodatabase for each HUC4 (hundreds of MB each)
+#' zion <- wavacore::getParkBoundary("ZION")
+#' flowlines <- mapNHDPlusHR(zion)
+#' nrow(flowlines)
+
 mapNHDPlusHR <- function(aoi){
   
   hucs <- nhdplusTools::get_huc(AOI = aoi, type = "huc04")

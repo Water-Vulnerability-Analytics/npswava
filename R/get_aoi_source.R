@@ -1,21 +1,50 @@
-#' This function takes in an sf version of the NPS water supply database "source"
-#' table filtered for select sites and returns an area of interest for each 
-#' source. The AOI is either the watershed associated with the source location
-#' (if the source is shallow GW or SW) or the geological formation extent if
-#' the source is deep groundwater, spring, or karst aquifer.
-#' Inputs:
-#' @param sf sf dataframe containing point geometry AND
-#'           source_type column. Valid source types include:
-#'           "Shallow Groundwater"
-#'           "River/Stream"
-#'           "Karst Aquifer and Spring"
-#'           "Spring"
-#'           "Deep Groundwater"
-#'           Note, this will most likely be source_table_locs
-#'           
-#' @return sf input dataframe with additional "aoi" columns containing
-#'         sf geometry and metadata for source area    
+#' @title Area of interest for each water source
+#'
+#' @description
+#' Finds the area each water source draws from, using its `source_type`:
+#' * `"Shallow Groundwater"` and `"River/Stream"`: the watershed upstream of
+#'   the source, from [getXYWatersheds()]. For wells
+#'   (`source_infrastructure == "Well"`) the youngest geologic unit at the
+#'   point ([get_rockd()]) is added.
+#' * `"Deep Groundwater"`, `"Spring"` and `"Karst Aquifer and Spring"`: the
+#'   geologic units at the point ([get_rockd()]). If `aquifer_name` is given,
+#'   the formation is looked up with [get_formation_info()] and the units are
+#'   narrowed to those whose name matches, or else to those within 5 to 50
+#'   million years of its age range. Units larger than 10,000 km2 are
+#'   dropped.
+#' * Any other type: no area (an empty entry).
+#'
+#' The source types are matched exactly, in title case. The current WSD from
+#' [wavacore::get_wsd()] uses lowercase types (e.g. `"shallow groundwater"`),
+#' so convert them first. It needs internet, and makes
+#' several requests per source.
+#'
+#' @param sf sf object. The water sources, as points with `source_type`,
+#'   `source_infrastructure` and `aquifer_name` columns. Default:
+#'   `source_table_locs`, an object of that name in the calling environment
+#'   (as in the deep-dive reports); there is no such object in the package,
+#'   so pass the sources.
+#'
+#' @return `sf` with two columns added: `method` (`"SHALLOW METHOD"`,
+#'   `"DEEP METHOD"` or `"OTHER"`) and `aoi`, a list column with one sf
+#'   object per source holding its area(s), with `type` (`"Watershed"` or
+#'   `"Formation"`) and the watershed or geologic unit columns.
 #' @export
+#' @seealso [getXYWatersheds()], [get_rockd()] and [get_formation_info()],
+#'   which it calls.
+#' @examplesIf interactive()
+#' # Queries NHDPlus and Macrostrat, so it needs internet
+#' src <- sf::st_as_sf(
+#'   data.frame(source_type = c("River/Stream", "Deep Groundwater"),
+#'              source_infrastructure = c("Surface Intake", "Well"),
+#'              aquifer_name = c(NA, "Navajo Sandstone"),
+#'              lon = c(-112.9877, -112.95), lat = c(37.2163, 37.25)),
+#'   coords = c("lon", "lat"), crs = 4326
+#' )
+#' src <- get_aoi_source(src)
+#' src$method
+#' lapply(src$aoi, function(x) unique(x$type))
+
 get_aoi_source <- function(sf = source_table_locs) {
   
   # for testing
@@ -159,15 +188,31 @@ get_aoi_source <- function(sf = source_table_locs) {
 
 
 # Get formation info - used in get_aoi_source()
-#' This function pulls geologic layers from the Macrostrat API that intersect 
-#' a user-specified point (or points) of interest. 
-#' 
-#' @param points An `sf` object of points.
-#' 
-#' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic 
-#' layers that intersect the point object(s). 
-
+#' @title Look up a geologic formation by name (Macrostrat)
+#'
+#' @description
+#' Searches the Macrostrat units API (<https://macrostrat.org/>) for a
+#' stratigraphic name, so it needs internet, and returns the matching units
+#' as polygons. Used by [get_aoi_source()] to find the formation of a deep
+#' groundwater or spring source.
+#'
+#' @param formation_name String. The stratigraphic name, with underscores
+#'   for spaces, e.g. `"Navajo"` or `"Cedar_Mesa"`. Required.
+#' @param rock_type String. A lithology group (e.g. `"sandstone"`), meant for
+#'   a second search if the name alone finds nothing. In practice the first
+#'   search's result is always returned, so this has no effect. Required.
+#'
+#' @return An sf object of unit polygons (CRS 4326) with the Macrostrat unit
+#'   columns (e.g. `unit_id`, `strat_name_long`, `Fm`, `t_age`, `b_age`).
+#'   Empty if nothing matches. If the request fails, the function stops with
+#'   an error.
 #' @export
+#' @seealso [get_rockd()] for units at points; [get_aoi_source()].
+#' @examplesIf interactive()
+#' # Queries the Macrostrat API, so it needs internet
+#' navajo <- get_formation_info("Navajo", "sandstone")
+#' range(as.numeric(navajo$t_age))
+
 get_formation_info <- function(formation_name, rock_type){
   
   # grab geologic layers that intersect the coordinates of the points of interest

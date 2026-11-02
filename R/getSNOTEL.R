@@ -1,15 +1,45 @@
-#' Pull weather station data for parks
-#' 
-#' This function imports SNOTEL and SCAN site data
-#' 
-#' @param aoi An sf polygon/multipolygon object, preferably a park boundary (or boundaries) retrieved from `getParkBoundary()`.
-#' @param dist The distance (in the same units as the aoi object) to buffer around park boundary
-#' @param years The years to pull data for. Default set to "all" which pulls all available years for each site, but can be a string of years 
-#' @param timeseries either 'Daily' or 'Hourly
-#' @param save Whether to save the resulting file (TRUE/FALSE)
-#' @param path If `save == TRUE`, the file path to save to
-#' @return An sf object of weather stations within given spatial boundary and attributes
+#' @title SNOTEL and SCAN station data in an area
+#'
+#' @description
+#' Finds the SNOTEL and SCAN stations inside `aoi` and its buffer (from the
+#' station list in soilDB) and downloads their data with
+#' [soilDB::fetchSCAN()], so it needs internet.
+#'
+#' It loads `SCAN_SNOTEL_metadata` into the global environment with
+#' [utils::data()].
+#'
+#' @param aoi sf object. The area of interest, as polygons, e.g. a park
+#'   boundary from [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by, in meters for a
+#'   longitude/latitude CRS (like the park boundaries) or in the CRS units
+#'   otherwise.
+#'   * `0`: only stations inside `aoi`.
+#'   * A positive distance: also stations within that distance of it.
+#'
+#'   Default: `0`.
+#' @param years `"all"` or a numeric vector of years. The years to download.
+#'   * `"all"`: from the earliest station start year to this year.
+#'   * Years, e.g. `2010:2020`: from the smallest to the largest of them
+#'     (gaps in the vector are filled in).
+#'
+#'   Default: `"all"`.
+#' @param timeseries String. `"Daily"` or `"Hourly"`, passed to
+#'   [soilDB::fetchSCAN()]. Default: `"Daily"`.
+#' @param save Logical. Not used yet: nothing is written. Default: `FALSE`.
+#' @param path String or `NULL`. Not used yet. Default: `NULL`.
+#'
+#' @return A data frame (not sf), one row per station, sensor and time step,
+#'   with every column as character, joined to the station metadata by
+#'   `Site`. If no station is in the area, prints "No sites found." and
+#'   returns `NULL`.
 #' @export
+#' @seealso [getNOAA()] for GHCN-Daily stations.
+#' @examplesIf interactive()
+#' # Downloads the park boundaries and the station data, so it needs internet
+#' romo <- wavacore::getParkBoundary("ROMO")
+#' snotel <- getSNOTEL(romo, years = 2020)
+#' head(snotel)
+
 getSNOTEL <- function(aoi, 
                       dist = 0, 
                       years = "all", 

@@ -2,28 +2,56 @@
 % Please edit documentation in R/getPODColorado.R
 \name{getPODColorado}
 \alias{getPODColorado}
-\title{This function returns all Colorado points of diversion (or more specifically,
-"structures used to divert, release, store, and manage water") within a user-supplied area of interest, plus
-water right information associated with those diversions.
-A table of all column name descriptions can be found at
-https://dwr.state.co.us/Tools/Structures/DataDictionary/GetDataDictionary and
-https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamount}
+\title{Colorado points of diversion and water rights in an area}
 \usage{
 getPODColorado(aoi, dist = 0)
 }
 \arguments{
-\item{aoi}{An sf polygon object used to grab Colorado POD and water rights data.}
+\item{aoi}{sf object. The area of interest, as polygons with a
+\code{UNIT_CODE} column, e.g. a park boundary from
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in the same units used by `aoi`) to buffer around the area of interest.}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
+features, in meters for a longitude/latitude CRS (like the park
+boundaries) or in the CRS units otherwise.
+\itemize{
+\item \code{0}: only features inside \code{aoi}.
+\item A positive distance: also features within that distance of it.
+}
+
+Default: \code{0}.}
 }
 \value{
-An `sf` object of Colorado PODs within the aoi and its buffer.
+An sf object of points (CRS NAD83), one row per structure and
+water right, with the structure columns, \code{UNIT_CODE}, \code{within_park}
+(\code{"Within Park"} or \code{NA} in the buffer), the CDSS structure and water
+rights columns, and \code{park_right} (\code{"Park"} when the contacts contain
+"National Park", otherwise \code{"Non-park"}). With no structures in the
+area, it prints a message and returns the empty sf object.
 }
 \description{
-This function returns all Colorado points of diversion (or more specifically,
-"structures used to divert, release, store, and manage water") within a user-supplied area of interest, plus
-water right information associated with those diversions.
-A table of all column name descriptions can be found at
-https://dwr.state.co.us/Tools/Structures/DataDictionary/GetDataDictionary and
-https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamount
+Downloads every Colorado structure (structures used to divert, release,
+store and manage water) from the Colorado Division of Water Resources
+(\url{https://dnrftp.state.co.us/CDSS/GIS/Structure.zip}), keeps the active
+ones (\code{CurrInUse} of U, A or F) inside \code{aoi} and its buffer, and adds each
+structure's details and net water rights from the CDSS REST API, one
+request per structure. It needs internet.
+
+If the API requests fail, the structures are returned without the API
+columns. Column descriptions are at
+\url{https://dwr.state.co.us/Tools/Structures/DataDictionary/GetDataDictionary}
+and \url{https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamount}.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads the statewide structures file and queries the CDSS API, so it
+# needs internet and takes a few minutes
+colm <- wavacore::getParkBoundary("COLM")
+structures <- getPODColorado(colm)
+head(structures)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+The other state functions, e.g. \code{\link[=getPODUtah]{getPODUtah()}} and
+\code{\link[=getWaterRightsMontana]{getWaterRightsMontana()}}.
 }

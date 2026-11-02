@@ -2,13 +2,39 @@
 % Please edit documentation in R/add_gw_meta.R
 \name{add_gw_meta}
 \alias{add_gw_meta}
-\title{Adds well and aquifer metadata to nwis_groundwater dataframe based on USGS site_no}
+\title{Add well and aquifer details to NWIS groundwater sites}
 \usage{
 add_gw_meta(nwis_groundwater)
 }
 \arguments{
-\item{nwis_groundwater}{a list of nwis groundwater sites returned and filtered from function 'listNWIS'}
+\item{nwis_groundwater}{Data frame or sf object. Groundwater sites with a
+\code{site_no} column, e.g. \code{\link[=listNWIS]{listNWIS()}} output filtered to
+\code{data_type_cd == "gw"}. Required.}
+}
+\value{
+\code{nwis_groundwater} with these columns added: \code{state_cd},
+\code{huc_cd}, \code{basin_cd}, \code{topo_cd}, \code{drain_area_va},
+\code{contrib_drain_area_va}, \code{nat_aqfr_cd}, \code{aqfr_cd}, \code{aqfr_type_cd},
+\code{well_depth_va} (feet), and the columns of the aquifer code, national
+aquifer code and aquifer type tables.
 }
 \description{
-Adds well and aquifer metadata to nwis_groundwater dataframe based on USGS site_no
+Adds site details from \code{\link[dataRetrieval:readNWISsite]{dataRetrieval::readNWISsite()}} (state, HUC, basin,
+topographic setting, drainage areas, aquifer codes and well depth) and the
+aquifer names and types from \code{\link[dataRetrieval:read_waterdata_metadata]{dataRetrieval::read_waterdata_metadata()}}
+to a table of groundwater sites, so it needs internet. Sites are requested
+in groups of up to 35,000.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Queries NWIS, so it needs internet
+zion <- wavacore::getParkBoundary("ZION")
+wells <- listNWIS(aoi = zion, dist = 5000)
+wells <- wells[wells$data_type_cd == "gw", ]
+wells <- add_gw_meta(wells)
+head(wells[, c("site_no", "aqfr_cd", "well_depth_va")])
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=listNWIS]{listNWIS()}} to find the sites; \code{\link[=aquifer_volume]{aquifer_volume()}}.
 }

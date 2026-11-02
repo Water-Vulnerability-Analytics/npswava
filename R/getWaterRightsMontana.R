@@ -1,27 +1,44 @@
-# Water Rights of Montana in file geodatabase format (6 feature classes). The data 
-# consists of estimated locations of water right points of diversion (POD) and places 
-# of use (POU) from the Department of Natural Resources and Conservation (DNRC)
-# Water Rights Database. There are six separate spatial layers: Points of Diversion (x2), 
-# Places of Use polygons (x2), Points of Reservoirs (water rights associated with a
-# reservoir; x2) For administrative purposes, the original version of all water rights
-# is given (feature classes for original version water rights are named with a "1":
-# WR1DIV; WR1POU; WR1RES). If a change of information about a particular 
-# water right has occurred over time, there will be an additional version of the water 
-# right, and depending on how many changes, there will only be one other version
-# number (greater than 1), which will represent the "current operating authority" 
-# version. IN MOST CASES, THE CURRENT OPERATING AUTHORITY DATA SHOULD BE USED 
-# (THAT IS, THE FEATURE CLASSES WITHOUT A "1" IN THE FILENAME: WRDIV, WRPOU, AND WRRES). 
-# The WRKEY is the unique identifier for a water right. It consists of the WRID hyphenated 
-# with the version number (VERID). Date are updated approximately twice annually.
-# 
-# http://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights_Metadata.xml
+#' @title Montana water rights in an area
 #'
-#' @param aoi An sf polygon object used to grab Montana water rights data.
-#' @param dist The distance (in the same units used by `aoi`) to buffer around the area of interest.
-#' 
-#' @return A list of `sf` objects: Montana points of diversions, places of use, and reservoirs within the user-supplied aoi and buffer area.
-
+#' @description
+#' Downloads the Montana Department of Natural Resources and Conservation
+#' water rights geodatabase
+#' (<https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip>),
+#' so it needs internet, and keeps the features inside `aoi` and its buffer.
+#' It reads the current operating authority layers: points of diversion
+#' (`WRDIV`), places of use (`WRPOU`) and reservoirs (`WRRES`). The layers
+#' for original versions (`WR1*`) are not read.
+#'
+#' `WRKEY`, the unique ID of a water right, is the water right ID (`WRID`)
+#' and its version (`VERID`) joined by a hyphen. The data are updated about
+#' twice a year. Metadata:
+#' <http://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights_Metadata.xml>.
+#'
+#' @param aoi sf object. The area of interest, as polygons with a
+#'   `UNIT_CODE` column, e.g. a park boundary from
+#'   [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by before selecting
+#'   features, in meters for a longitude/latitude CRS (like the park
+#'   boundaries) or in the CRS units otherwise.
+#'   * `0`: only features inside `aoi`.
+#'   * A positive distance: also features within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return A list of three sf objects in the CRS of the geodatabase:
+#'   `points_of_diversion`, `places_of_use` and `reservoirs`. Each has the
+#'   layer's columns plus `UNIT_CODE`, `park_right` (`"Park"` when
+#'   `ALLOWNERS` contains "National Park", otherwise `"Non-park"`) and
+#'   `within_park` (`"Within Park"` or `NA` in the buffer).
 #' @export
+#' @seealso The other state functions, e.g. [getPODColorado()].
+#' @examplesIf interactive()
+#' # Downloads the statewide geodatabase, so it needs internet and takes a
+#' # few minutes
+#' biho <- wavacore::getParkBoundary("BIHO")
+#' mt <- getWaterRightsMontana(biho, dist = 5000)
+#' lapply(mt, nrow)
+
 getWaterRightsMontana <- function(aoi, dist = 0){
   
   call <- "https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip"

@@ -2,18 +2,48 @@
 % Please edit documentation in R/getOvernightStays.R
 \name{getOvernightStays}
 \alias{getOvernightStays}
-\title{Get monthly visitor use and overnight-stay components for NPS unit(s)}
+\title{Monthly visits and overnight stays for park units}
 \usage{
 getOvernightStays(parks)
 }
 \arguments{
-\item{parks}{Character vector of NPS unit code(s)}
+\item{parks}{Character vector. NPS unit codes, e.g. \code{c("ZION", "BRCA")}.
+Codes not in the files give no rows. Required.}
 }
 \value{
-A tibble with one row per unit code per month of visitation data.
+A tibble, one row per park unit and month, with \code{UnitCode}, \code{ym}
+(first day of the month), the visit counts (\code{Backcountry},
+\code{ConcessionerCamping}, \code{ConcessionerLodging},
+\code{MiscellaneousOvernightStays}, \code{NonRecreationVisits},
+\code{RecreationVisits}, \code{RVCampers}, \code{TentCampers}) and the derived
+\code{RecreationDayUse}, \code{NonRecreationDayUse}, \code{RecreationOvernightUse},
+\code{NonRecreationOvernightUse}, \code{TotalDayUse}, \code{TotalOvernightUse} and
+\code{TotalPeople}.
 }
 \description{
-Reads locally stored NPS visitor use data files (from Data Store exports),
-filters to one or more NPS unit codes, reshapes to compute derived day-use and
-overnight-use metrics, and returns a tidy monthly time series.
+Reads the NPS visitor use statistics exported from the NPS Stats "Query
+Builder for Public Use Statistics" (every file in
+\code{all/nps_visitor_use_data} in the shared data folder), keeps the given
+park units, and calculates day use and overnight use for each month:
+\itemize{
+\item \code{RecreationOvernightUse}: concessioner lodging and camping, tent and RV
+campers, backcountry and miscellaneous overnight stays;
+\item \code{RecreationDayUse}: recreation visits minus recreation overnight use;
+\item \code{NonRecreationDayUse}: non-recreation visits minus non-recreation
+overnight stays;
+\item totals for day use, overnight use and people.
+}
+
+Some codes in the files are changed: JOFK to JOFI, KLSE to KLGO, MAMC to
+MABE, and NCPC, NCPE, NAVC and PRPA to NACA.
+}
+\examples{
+\dontshow{if (dir.exists(wavacore::wava_data_path("all", "nps_visitor_use_data"))) withAutoprint(\{ # examplesIf}
+stays <- getOvernightStays(c("ZION", "BRCA"))
+head(stays[, c("UnitCode", "ym", "RecreationVisits", "RecreationOvernightUse")])
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[wavacore:getUnitVisitation]{wavacore::getUnitVisitation()}} for monthly visits from the NPS
+API.
 }

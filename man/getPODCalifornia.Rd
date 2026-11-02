@@ -2,22 +2,52 @@
 % Please edit documentation in R/getPODCalifornia.R
 \name{getPODCalifornia}
 \alias{getPODCalifornia}
-\title{Import and clean California Water Rights Spatial Data
-This function imports geospatial data from the eWRIMS database (https://waterrightsmaps.waterboards.ca.gov/viewer/index.html?viewer=eWRIMS.eWRIMS_gvh#)
-Uses Rselenius so java and firefox need to  be installed on your local computer.}
+\title{California water rights points of diversion in an area}
 \usage{
 getPODCalifornia(aoi, dist = 0)
 }
 \arguments{
-\item{aoi}{An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons with a
+\code{UNIT_CODE} column, e.g. a park boundary from
+\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in the same units used in  `park`) to buffer around spatial object `park`}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
+features, in meters for a longitude/latitude CRS (like the park
+boundaries) or in the CRS units otherwise.
+\itemize{
+\item \code{0}: only features inside \code{aoi}.
+\item A positive distance: also features within that distance of it.
+}
+
+Default: \code{0}.}
 }
 \value{
-An sf object of points of diversion within given spatial boundary and attributes
+An sf object of points (CRS NAD83), one row per point of diversion
+and attribute record in the area, with \code{POD_ID}, \code{LATITUDE},
+\code{LONGITUDE}, \code{DIVERSION_SITE_NAME}, \code{SOURCE_NAME}, the attribute columns,
+\code{UNIT_CODE}, \code{park_right} (\code{"Park"} when \code{LAST_NAME} contains "National
+Park", otherwise \code{"Non-park"}) and \code{within_park} (\code{"Within"} or
+\code{"Outside"}).
 }
 \description{
-Import and clean California Water Rights Spatial Data
-This function imports geospatial data from the eWRIMS database (https://waterrightsmaps.waterboards.ca.gov/viewer/index.html?viewer=eWRIMS.eWRIMS_gvh#)
-Uses Rselenius so java and firefox need to  be installed on your local computer.
+Downloads the California eWRIMS points of diversion
+(\url{https://waterrightsmaps.waterboards.ca.gov/viewer/index.html?viewer=eWRIMS.eWRIMS_gvh})
+by driving a headless Firefox with RSelenium, joins them to the point
+attributes, and keeps those inside \code{aoi} and its buffer. It needs
+internet, the RSelenium package (in Suggests), Java and Firefox.
+
+It creates a \code{temp_ewrims} folder in the working directory for the
+download and deletes it at the end. It also sets
+\code{options(timeout = 1000)} (or higher) for the session.
+}
+\examples{
+\dontrun{
+# Not run: needs RSelenium, Java and Firefox, and writes a temporary
+# folder in the working directory
+jotr <- wavacore::getParkBoundary("JOTR")
+pods <- getPODCalifornia(jotr, dist = 1000)
+}
+}
+\seealso{
+The other state functions, e.g. \code{\link[=getPODUtah]{getPODUtah()}}.
 }

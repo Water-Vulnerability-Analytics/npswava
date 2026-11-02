@@ -2,7 +2,7 @@
 % Please edit documentation in R/getSNOTEL.R
 \name{getSNOTEL}
 \alias{getSNOTEL}
-\title{Pull weather station data for parks}
+\title{SNOTEL and SCAN station data in an area}
 \usage{
 getSNOTEL(
   aoi,
@@ -14,21 +14,57 @@ getSNOTEL(
 )
 }
 \arguments{
-\item{aoi}{An sf polygon/multipolygon object, preferably a park boundary (or boundaries) retrieved from `getParkBoundary()`.}
+\item{aoi}{sf object. The area of interest, as polygons, e.g. a park
+boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
 
-\item{dist}{The distance (in the same units as the aoi object) to buffer around park boundary}
+\item{dist}{Numeric. The distance to buffer \code{aoi} by, in meters for a
+longitude/latitude CRS (like the park boundaries) or in the CRS units
+otherwise.
+\itemize{
+\item \code{0}: only stations inside \code{aoi}.
+\item A positive distance: also stations within that distance of it.
+}
 
-\item{years}{The years to pull data for. Default set to "all" which pulls all available years for each site, but can be a string of years}
+Default: \code{0}.}
 
-\item{timeseries}{either 'Daily' or 'Hourly}
+\item{years}{\code{"all"} or a numeric vector of years. The years to download.
+\itemize{
+\item \code{"all"}: from the earliest station start year to this year.
+\item Years, e.g. \code{2010:2020}: from the smallest to the largest of them
+(gaps in the vector are filled in).
+}
 
-\item{save}{Whether to save the resulting file (TRUE/FALSE)}
+Default: \code{"all"}.}
 
-\item{path}{If `save == TRUE`, the file path to save to}
+\item{timeseries}{String. \code{"Daily"} or \code{"Hourly"}, passed to
+\code{\link[soilDB:fetchSCAN]{soilDB::fetchSCAN()}}. Default: \code{"Daily"}.}
+
+\item{save}{Logical. Not used yet: nothing is written. Default: \code{FALSE}.}
+
+\item{path}{String or \code{NULL}. Not used yet. Default: \code{NULL}.}
 }
 \value{
-An sf object of weather stations within given spatial boundary and attributes
+A data frame (not sf), one row per station, sensor and time step,
+with every column as character, joined to the station metadata by
+\code{Site}. If no station is in the area, prints "No sites found." and
+returns \code{NULL}.
 }
 \description{
-This function imports SNOTEL and SCAN site data
+Finds the SNOTEL and SCAN stations inside \code{aoi} and its buffer (from the
+station list in soilDB) and downloads their data with
+\code{\link[soilDB:fetchSCAN]{soilDB::fetchSCAN()}}, so it needs internet.
+
+It loads \code{SCAN_SNOTEL_metadata} into the global environment with
+\code{\link[utils:data]{utils::data()}}.
+}
+\examples{
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+# Downloads the park boundaries and the station data, so it needs internet
+romo <- wavacore::getParkBoundary("ROMO")
+snotel <- getSNOTEL(romo, years = 2020)
+head(snotel)
+\dontshow{\}) # examplesIf}
+}
+\seealso{
+\code{\link[=getNOAA]{getNOAA()}} for GHCN-Daily stations.
 }

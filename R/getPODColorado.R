@@ -1,16 +1,45 @@
-#' This function returns all Colorado points of diversion (or more specifically,
-#' "structures used to divert, release, store, and manage water") within a user-supplied area of interest, plus
-#' water right information associated with those diversions.
-#' A table of all column name descriptions can be found at
-#' https://dwr.state.co.us/Tools/Structures/DataDictionary/GetDataDictionary and
-#' https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamount
+#' @title Colorado points of diversion and water rights in an area
 #'
-#' @param aoi An sf polygon object used to grab Colorado POD and water rights data.
-#' @param dist The distance (in the same units used by `aoi`) to buffer around the area of interest.
+#' @description
+#' Downloads every Colorado structure (structures used to divert, release,
+#' store and manage water) from the Colorado Division of Water Resources
+#' (<https://dnrftp.state.co.us/CDSS/GIS/Structure.zip>), keeps the active
+#' ones (`CurrInUse` of U, A or F) inside `aoi` and its buffer, and adds each
+#' structure's details and net water rights from the CDSS REST API, one
+#' request per structure. It needs internet.
 #'
-#' @return An `sf` object of Colorado PODs within the aoi and its buffer.
-
+#' If the API requests fail, the structures are returned without the API
+#' columns. Column descriptions are at
+#' <https://dwr.state.co.us/Tools/Structures/DataDictionary/GetDataDictionary>
+#' and <https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamount>.
+#'
+#' @param aoi sf object. The area of interest, as polygons with a
+#'   `UNIT_CODE` column, e.g. a park boundary from
+#'   [wavacore::getParkBoundary()]. Required.
+#' @param dist Numeric. The distance to buffer `aoi` by before selecting
+#'   features, in meters for a longitude/latitude CRS (like the park
+#'   boundaries) or in the CRS units otherwise.
+#'   * `0`: only features inside `aoi`.
+#'   * A positive distance: also features within that distance of it.
+#'
+#'   Default: `0`.
+#'
+#' @return An sf object of points (CRS NAD83), one row per structure and
+#'   water right, with the structure columns, `UNIT_CODE`, `within_park`
+#'   (`"Within Park"` or `NA` in the buffer), the CDSS structure and water
+#'   rights columns, and `park_right` (`"Park"` when the contacts contain
+#'   "National Park", otherwise `"Non-park"`). With no structures in the
+#'   area, it prints a message and returns the empty sf object.
 #' @export
+#' @seealso The other state functions, e.g. [getPODUtah()] and
+#'   [getWaterRightsMontana()].
+#' @examplesIf interactive()
+#' # Downloads the statewide structures file and queries the CDSS API, so it
+#' # needs internet and takes a few minutes
+#' colm <- wavacore::getParkBoundary("COLM")
+#' structures <- getPODColorado(colm)
+#' head(structures)
+
 getPODColorado <- function(aoi, dist = 0){
   
   call <- "https://dnrftp.state.co.us/CDSS/GIS/Structure.zip"  #download boundary
