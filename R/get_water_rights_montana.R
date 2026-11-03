@@ -31,15 +31,15 @@
 #'   `ALLOWNERS` contains "National Park", otherwise `"Non-park"`) and
 #'   `within_park` (`"Within Park"` or `NA` in the buffer).
 #' @export
-#' @seealso The other state functions, e.g. [getPODColorado()].
+#' @seealso The other state functions, e.g. [get_pod_colorado()].
 #' @examplesIf interactive()
 #' # Downloads the statewide geodatabase, so it needs internet and takes a
 #' # few minutes
 #' biho <- wavacore::getParkBoundary("BIHO")
-#' mt <- getWaterRightsMontana(biho, dist = 5000)
+#' mt <- get_water_rights_montana(biho, dist = 5000)
 #' lapply(mt, nrow)
 
-getWaterRightsMontana <- function(aoi, dist = 0){
+get_water_rights_montana <- function(aoi, dist = 0){
   
   call <- "https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip"
   temp1 <- tempfile()

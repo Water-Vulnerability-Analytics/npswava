@@ -27,6 +27,6 @@ sf::st_area(basin)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=listNWIS]{listNWIS()}} to find gages; \code{\link[=getXYWatersheds]{getXYWatersheds()}} for the
+\code{\link[=list_nwis]{list_nwis()}} to find gages; \code{\link[=get_xy_watersheds]{get_xy_watersheds()}} for the
 watershed of any point.
 }

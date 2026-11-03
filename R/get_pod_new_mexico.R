@@ -23,16 +23,16 @@
 #'   `"Non-park"`; this doesn't catch every park right) and `within_aoi`
 #'   (`"Within AOI"` or `"Within buffer"`).
 #' @export
-#' @seealso The other state functions, e.g. [getPODUtah()] and
-#'   [getPODColorado()].
+#' @seealso The other state functions, e.g. [get_pod_utah()] and
+#'   [get_pod_colorado()].
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the points of diversion, so it needs
 #' # internet
 #' band <- wavacore::getParkBoundary("BAND")
-#' pods <- getPODNewMexico(band, dist = 1000)
+#' pods <- get_pod_new_mexico(band, dist = 1000)
 #' table(pods$within_aoi, pods$park_right)
 
-getPODNewMexico <- function(aoi, dist = 0){
+get_pod_new_mexico <- function(aoi, dist = 0){
   
   # add buffer around park boundary
   aoi_buffer <- aoi %>% 

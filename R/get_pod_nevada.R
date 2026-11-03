@@ -23,13 +23,13 @@
 #'   `PARK_RIGHT` (`"Park"` when `owner_name` contains "National Park",
 #'   otherwise `"Non-park"`).
 #' @export
-#' @seealso The other state functions, e.g. [getPODUtah()].
+#' @seealso The other state functions, e.g. [get_pod_utah()].
 #' @examplesIf file.exists(wavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()
 #' grba <- wavacore::getParkBoundary("GRBA")
-#' pods <- getPODNevada(grba, dist = 1000)
+#' pods <- get_pod_nevada(grba, dist = 1000)
 #' table(pods$PARK_RIGHT)
 
-getPODNevada <- function(aoi, dist=0){
+get_pod_nevada <- function(aoi, dist=0){
   
   # add buffer around park boundary  
   aoi_buffer <- aoi %>%

@@ -3,7 +3,7 @@
 #' @description
 #' Finds the area each water source draws from, using its `source_type`:
 #' * `"Shallow Groundwater"` and `"River/Stream"`: the watershed upstream of
-#'   the source, from [getXYWatersheds()]. For wells
+#'   the source, from [get_xy_watersheds()]. For wells
 #'   (`source_infrastructure == "Well"`) the youngest geologic unit at the
 #'   point ([get_rockd()]) is added.
 #' * `"Deep Groundwater"`, `"Spring"` and `"Karst Aquifer and Spring"`: the
@@ -30,7 +30,7 @@
 #'   object per source holding its area(s), with `type` (`"Watershed"` or
 #'   `"Formation"`) and the watershed or geologic unit columns.
 #' @export
-#' @seealso [getXYWatersheds()], [get_rockd()] and [get_formation_info()],
+#' @seealso [get_xy_watersheds()], [get_rockd()] and [get_formation_info()],
 #'   which it calls.
 #' @examplesIf interactive()
 #' # Queries NHDPlus and Macrostrat, so it needs internet
@@ -79,7 +79,7 @@ get_aoi_source <- function(sf = source_table_locs) {
       
       # First get watershed
       ws <- sf[i,]["geometry"] %>% 
-        getXYWatersheds(sf = ., coordinates = NULL) %>%
+        get_xy_watersheds(sf = ., coordinates = NULL) %>%
         dplyr::summarize() %>%
         sf::st_transform(., crs = sf_crs) %>%
         dplyr::mutate(type = "Watershed",

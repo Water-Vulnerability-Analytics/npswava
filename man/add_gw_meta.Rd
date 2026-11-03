@@ -8,7 +8,7 @@ add_gw_meta(nwis_groundwater)
 }
 \arguments{
 \item{nwis_groundwater}{Data frame or sf object. Groundwater sites with a
-\code{site_no} column, e.g. \code{\link[=listNWIS]{listNWIS()}} output filtered to
+\code{site_no} column, e.g. \code{\link[=list_nwis]{list_nwis()}} output filtered to
 \code{data_type_cd == "gw"}. Required.}
 }
 \value{
@@ -29,12 +29,12 @@ in groups of up to 35,000.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Queries NWIS, so it needs internet
 zion <- wavacore::getParkBoundary("ZION")
-wells <- listNWIS(aoi = zion, dist = 5000)
+wells <- list_nwis(aoi = zion, dist = 5000)
 wells <- wells[wells$data_type_cd == "gw", ]
 wells <- add_gw_meta(wells)
 head(wells[, c("site_no", "aqfr_cd", "well_depth_va")])
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=listNWIS]{listNWIS()}} to find the sites; \code{\link[=aquifer_volume]{aquifer_volume()}}.
+\code{\link[=list_nwis]{list_nwis()}} to find the sites; \code{\link[=aquifer_volume]{aquifer_volume()}}.
 }

@@ -33,15 +33,15 @@
 #'   `id`, `date`, one column per variable (in GHCN-Daily units), `elevation`
 #'   and `name`.
 #' @export
-#' @seealso [getSNOTEL()] for SNOTEL and SCAN stations.
+#' @seealso [get_snotel()] for SNOTEL and SCAN stations.
 #' @examplesIf interactive() && requireNamespace("rnoaa", quietly = TRUE)
 #' # Downloads the station list and the daily data, so it needs internet
 #' zion <- wavacore::getParkBoundary("ZION")
-#' weather <- getNOAA(zion, park = "ZION", startDate = "2020-01-01",
+#' weather <- get_noaa(zion, park = "ZION", startDate = "2020-01-01",
 #'                    endDate = "2020-12-31", variables = c("PRCP", "TMAX"))
 #' head(weather)
 
-getNOAA <-
+get_noaa <-
   function(aoi,
            park,
            startDate = "first",

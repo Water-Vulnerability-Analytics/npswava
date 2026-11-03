@@ -13,14 +13,14 @@
 #' @return An sf object of flowlines (CRS NAD83, Z and M dropped) with the
 #'   NHDPlus HR flowline columns.
 #' @export
-#' @seealso [getXYWatersheds()] and [nldi_finder()] for watersheds.
+#' @seealso [get_xy_watersheds()] and [nldi_finder()] for watersheds.
 #' @examplesIf interactive() && dir.exists(wavacore::wava_data_path("all", "nhdplushr"))
 #' # Reads the NHDPlus HR geodatabase for each HUC4 (hundreds of MB each)
 #' zion <- wavacore::getParkBoundary("ZION")
-#' flowlines <- mapNHDPlusHR(zion)
+#' flowlines <- map_nhdplus_hr(zion)
 #' nrow(flowlines)
 
-mapNHDPlusHR <- function(aoi){
+map_nhdplus_hr <- function(aoi){
   
   hucs <- nhdplusTools::get_huc(AOI = aoi, type = "huc04")
   

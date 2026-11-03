@@ -30,10 +30,10 @@
 #' @seealso [wavacore::getUnitVisitation()] for monthly visits from the NPS
 #'   API.
 #' @examplesIf dir.exists(wavacore::wava_data_path("all", "nps_visitor_use_data"))
-#' stays <- getOvernightStays(c("ZION", "BRCA"))
+#' stays <- get_overnight_stays(c("ZION", "BRCA"))
 #' head(stays[, c("UnitCode", "ym", "RecreationVisits", "RecreationOvernightUse")])
 
-getOvernightStays <- function(parks){
+get_overnight_stays <- function(parks){
   # vars we care about - 
   visit_vars <- c("Backcountry", "ConcessionerCamping", "ConcessionerLodging",
                   "MiscellaneousOvernightStays", "NonRecreationOvernightStays",
@@ -104,7 +104,7 @@ getOvernightStays <- function(parks){
 # # Code to grab for all parks:
 #  parks <- getParkSystem() %>%
 #    .$UNIT_CODE %>%
-#    map(~try(getOvernightStays(park = .), silent = TRUE)) %>%
+#    map(~try(get_overnight_stays(park = .), silent = TRUE)) %>%
 #    keep(., is.data.frame) %>%
 #    bind_rows()
 # 

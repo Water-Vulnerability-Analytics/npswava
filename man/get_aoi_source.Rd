@@ -23,7 +23,7 @@ object per source holding its area(s), with \code{type} (\code{"Watershed"} or
 Finds the area each water source draws from, using its \code{source_type}:
 \itemize{
 \item \code{"Shallow Groundwater"} and \code{"River/Stream"}: the watershed upstream of
-the source, from \code{\link[=getXYWatersheds]{getXYWatersheds()}}. For wells
+the source, from \code{\link[=get_xy_watersheds]{get_xy_watersheds()}}. For wells
 (\code{source_infrastructure == "Well"}) the youngest geologic unit at the
 point (\code{\link[=get_rockd]{get_rockd()}}) is added.
 \item \code{"Deep Groundwater"}, \code{"Spring"} and \code{"Karst Aquifer and Spring"}: the
@@ -56,6 +56,6 @@ lapply(src$aoi, function(x) unique(x$type))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[=getXYWatersheds]{getXYWatersheds()}}, \code{\link[=get_rockd]{get_rockd()}} and \code{\link[=get_formation_info]{get_formation_info()}},
+\code{\link[=get_xy_watersheds]{get_xy_watersheds()}}, \code{\link[=get_rockd]{get_rockd()}} and \code{\link[=get_formation_info]{get_formation_info()}},
 which it calls.
 }

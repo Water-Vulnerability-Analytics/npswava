@@ -33,14 +33,14 @@
 #'   `Site`. If no station is in the area, prints "No sites found." and
 #'   returns `NULL`.
 #' @export
-#' @seealso [getNOAA()] for GHCN-Daily stations.
+#' @seealso [get_noaa()] for GHCN-Daily stations.
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the station data, so it needs internet
 #' romo <- wavacore::getParkBoundary("ROMO")
-#' snotel <- getSNOTEL(romo, years = 2020)
+#' snotel <- get_snotel(romo, years = 2020)
 #' head(snotel)
 
-getSNOTEL <- function(aoi, 
+get_snotel <- function(aoi, 
                       dist = 0, 
                       years = "all", 
                       timeseries = "Daily", 

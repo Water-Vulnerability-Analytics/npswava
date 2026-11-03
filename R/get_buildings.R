@@ -25,10 +25,10 @@
 #' # Downloads the park boundaries and every NPS building, so it needs
 #' # internet and takes a few minutes
 #' zion <- wavacore::getParkBoundary("ZION")
-#' buildings <- getBuildings(zion)
+#' buildings <- get_buildings(zion)
 #' nrow(buildings)
 
-getBuildings <- function(park_boundary, dist = 0){
+get_buildings <- function(park_boundary, dist = 0){
 
   #install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
   call <- "https://opendata.arcgis.com/api/v3/datasets/2bf22e15d269431e9e3380382c0a1546_2/downloads/data?format=shp&spatialRefId=3857&where=1%3D1"

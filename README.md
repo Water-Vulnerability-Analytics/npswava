@@ -3,18 +3,18 @@
 Data retrieval and analysis functions used by the park-specific deep-dive
 water supply vulnerability assessments of National Park Service (NPS) units,
 part of Water Vulnerability Analytics (WaVA). Every function has a help page,
-e.g. `?listNWIS`.
+e.g. `?list_nwis`.
 
 ## What is in it
 
 | Function family | What it does |
 | --- | --- |
-| `getPOD*()`, `getWaterRightsMontana()`, `getWaterSuppliersUtah()`, `getWaterUseUtah()` | State water rights, points of diversion and water suppliers in an area (CA, CO, MT, NM, NV, UT) |
-| `listNWIS()`, `add_gw_meta()`, `nldi_finder()`, `baseflow_eckhardt()` | USGS gages and wells, their basins and details, and baseflow separation |
-| `getXYWatersheds()`, `mapNHDPlusHR()`, `get_aoi_source()` | Watersheds, flowlines and the area each water source draws from |
+| `get_pod_*()`, `get_water_rights_montana()`, `get_water_suppliers_utah()`, `get_water_use_utah()` | State water rights, points of diversion and water suppliers in an area (CA, CO, MT, NM, NV, UT) |
+| `list_nwis()`, `add_gw_meta()`, `nldi_finder()`, `baseflow_eckhardt()` | USGS gages and wells, their basins and details, and baseflow separation |
+| `get_xy_watersheds()`, `map_nhdplus_hr()`, `get_aoi_source()` | Watersheds, flowlines and the area each water source draws from |
 | `get_rockd()`, `get_rockd_aoi()`, `get_formation_info()`, `get_surficial_geology()`, `aquifer_volume()` | Geology (Macrostrat, USGS) and aquifer storage |
-| `getNOAA()`, `getSNOTEL()`, `get_climate_historic()`, `get_climate_future()`, `select_cfs_deep_dive()` | Weather stations, GridMET and MACA climate, and climate future selection |
-| `getOvernightStays()`, `getBuildings()` | Park visitor use and buildings |
+| `get_noaa()`, `get_snotel()`, `get_climate_historic()`, `get_climate_future()`, `select_cfs_deep_dive()` | Weather stations, GridMET and MACA climate, and climate future selection |
+| `get_overnight_stays()`, `get_buildings()` | Park visitor use and buildings |
 | `make_ym()`, `calc_water_year()` | Date helpers |
 
 ## Install

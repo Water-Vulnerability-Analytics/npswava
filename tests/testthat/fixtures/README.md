@@ -114,16 +114,22 @@ names the download if the case has one. To find the cause:
 These can't run in either version right now, and a case that errors would
 stop `make_golden.R` for every case. Add them once they can run:
 
-- `getPODCalifornia()`: needs RSelenium, Java and Firefox.
-- `getPODNewMexico()`: the `OSE_PODs` service returns "Invalid URL" (it was
+- `get_pod_california()`: needs RSelenium, Java and Firefox.
+- `get_pod_new_mexico()`: the `OSE_PODs` service returns "Invalid URL" (it was
   renamed `OSE_Points_of_Diversion`).
-- `getPODNevada()`: its input files (`all/POD_Permits_All.shp`,
+- `get_pod_nevada()`: its input files (`all/POD_Permits_All.shp`,
   `all/Water_Rights_Points_of_Diversion.csv`) aren't in the shared data
   folder.
-- `getXYWatersheds()` and `get_aoi_source()`: the USGS split-catchment
+- `get_xy_watersheds()` and `get_aoi_source()`: the USGS split-catchment
   service errors (`'NoneType' object has no attribute 'lower'`).
-- `getSNOTEL()`: `soilDB::fetchSCAN()` returns `NULL`.
+- `get_snotel()`: `soilDB::fetchSCAN()` returns `NULL`.
+- `get_rockd_aoi()`: taken out on 2026-11-03. It keeps map units by position
+  rather than by source id, so when two sources share a scale its result
+  depends on the order Macrostrat returns rows in. With the current order it
+  keeps none and queries almost every one of its 10,000 grid points (over an
+  hour). Add it back once that is fixed (issue #7). Its default resolution
+  (all four values) also errors.
 - The partly penetrating well branch of `aquifer_volume()` (it errors:
   `buffer_length2` is undefined).
-- The `save = TRUE` branches of `getNOAA()` and `getSNOTEL()`, which write
+- The `save = TRUE` branches of `get_noaa()` and `get_snotel()`, which write
   files.

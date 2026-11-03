@@ -88,9 +88,10 @@ info <- c(
 
 for (case in golden_cases) {
   message("Running ", case$id)
+  old_fun <- if (is.null(case$old_fun)) case$fun else case$old_fun
   warns <- character()
   value <- withCallingHandlers(
-    do.call(case$fun, case$args),
+    do.call(old_fun, case$args),
     warning = function(w) {
       warns <<- c(warns, conditionMessage(w))
       invokeRestart("muffleWarning")
