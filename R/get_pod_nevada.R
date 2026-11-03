@@ -9,7 +9,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -23,23 +23,23 @@
 #'   `PARK_RIGHT` (`"Park"` when `owner_name` contains "National Park",
 #'   otherwise `"Non-park"`).
 #' @export
-#' @seealso The other state functions, e.g. [getPODUtah()].
-#' @examplesIf file.exists(wavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()
-#' grba <- wavacore::getParkBoundary("GRBA")
-#' pods <- getPODNevada(grba, dist = 1000)
+#' @seealso The other state functions, e.g. [get_pod_utah()].
+#' @examplesIf file.exists(npswavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()
+#' grba <- npswavacore::get_park_boundary("GRBA")
+#' pods <- get_pod_nevada(grba, dist = 1000)
 #' table(pods$PARK_RIGHT)
 
-getPODNevada <- function(aoi, dist=0){
+get_pod_nevada <- function(aoi, dist=0){
   
   # add buffer around park boundary  
   aoi_buffer <- aoi %>%
     sf::st_buffer(dist = dist) 
   
   #read in POD attribute table
-  table <- readr::read_csv(wavacore::wava_data_path("all", "Water_Rights_Points_of_Diversion.csv"))
+  table <- readr::read_csv(npswavacore::wava_data_path("all", "Water_Rights_Points_of_Diversion.csv"))
   
   #read in spatial points of diversion
-  nv_wr <- sf::st_read(wavacore::wava_data_path("all", "POD_Permits_All.shp")) %>%
+  nv_wr <- sf::st_read(npswavacore::wava_data_path("all", "POD_Permits_All.shp")) %>%
     sf::st_drop_geometry() %>%
     dplyr::inner_join(.,table, by="app") %>%
     sf::st_as_sf(.,coords=c("longitude","latitude"), crs = 4269) %>%

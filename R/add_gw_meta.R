@@ -8,7 +8,7 @@
 #' in groups of up to 35,000.
 #'
 #' @param nwis_groundwater Data frame or sf object. Groundwater sites with a
-#'   `site_no` column, e.g. [listNWIS()] output filtered to
+#'   `site_no` column, e.g. [list_nwis()] output filtered to
 #'   `data_type_cd == "gw"`. Required.
 #'
 #' @return `nwis_groundwater` with these columns added: `state_cd`,
@@ -17,11 +17,11 @@
 #'   `well_depth_va` (feet), and the columns of the aquifer code, national
 #'   aquifer code and aquifer type tables.
 #' @export
-#' @seealso [listNWIS()] to find the sites; [aquifer_volume()].
+#' @seealso [list_nwis()] to find the sites; [aquifer_volume()].
 #' @examplesIf interactive()
 #' # Queries NWIS, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
-#' wells <- listNWIS(aoi = zion, dist = 5000)
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' wells <- list_nwis(aoi = zion, dist = 5000)
 #' wells <- wells[wells$data_type_cd == "gw", ]
 #' wells <- add_gw_meta(wells)
 #' head(wells[, c("site_no", "aqfr_cd", "well_depth_va")])

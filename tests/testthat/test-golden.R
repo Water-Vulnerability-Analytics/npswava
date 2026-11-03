@@ -1,8 +1,9 @@
-# Compare wavadeepdive with golden outputs saved from the old code in
+# Compare npswava with golden outputs saved from the old code in
 # nps_water_vulnerability at the pinned commit b62f366, the playground when
-# wavadeepdive was split out (see fixtures/README.md). A failure means
-# wavadeepdive no longer returns exactly what the old code did. Report it;
-# don't regenerate the golden file or loosen the comparison to make it pass.
+# npswava (then wavadeepdive) was split out (see fixtures/README.md). A
+# failure means npswava no longer returns exactly what the old code did.
+# Report it; don't regenerate the golden file or loosen the comparison to make
+# it pass.
 #
 # Every skip names the case and what is missing. A service that is down is not
 # a skip: its error is reported as is. A failure also says what else has
@@ -22,10 +23,10 @@ if (length(list.files(golden_dir, pattern = "\\.rds$")) == 0) {
 
 data_folder_reason <- function(case) {
   paste0(case$id, ": no ", case$reads, " in the data folder \"",
-         wavacore::wava_data_dir(), "\" (", data_dir_source(), ")")
+         npswavacore::wava_data_dir(), "\" (", data_dir_source(), ")")
 }
 
-# What has changed since the golden files were made, other than wavadeepdive:
+# What has changed since the golden files were made, other than npswava:
 # R, package versions and the shared data, against golden_env.csv. Returns a
 # data frame with one row per change (`item`: "R", "package" or "data file";
 # `name`; `text`), or NULL without golden_env.csv. Shown only when a case
@@ -39,7 +40,7 @@ golden_env_changes <- function() {
       R = as.character(getRversion()),
       package = tryCatch(as.character(utils::packageVersion(env$name[i])),
                          error = function(e) "not installed"),
-      "data file" = golden_checksum(wavacore::wava_data_path(env$name[i]))
+      "data file" = golden_checksum(npswavacore::wava_data_path(env$name[i]))
     )
   }, character(1))
   changed <- env$value != now
@@ -94,7 +95,7 @@ for (case in golden_cases) {
                 paste0(case$id, ": golden file missing: ", golden_file,
                        "; run tests/testthat/fixtures/make_golden.R"))
     if ("data" %in% case$needs) {
-      skip_if_not(file.exists(wavacore::wava_data_path(case$reads)),
+      skip_if_not(file.exists(npswavacore::wava_data_path(case$reads)),
                   data_folder_reason(case))
     }
     if ("internet" %in% case$needs) {

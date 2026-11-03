@@ -16,7 +16,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -31,15 +31,15 @@
 #'   `ALLOWNERS` contains "National Park", otherwise `"Non-park"`) and
 #'   `within_park` (`"Within Park"` or `NA` in the buffer).
 #' @export
-#' @seealso The other state functions, e.g. [getPODColorado()].
+#' @seealso The other state functions, e.g. [get_pod_colorado()].
 #' @examplesIf interactive()
 #' # Downloads the statewide geodatabase, so it needs internet and takes a
 #' # few minutes
-#' biho <- wavacore::getParkBoundary("BIHO")
-#' mt <- getWaterRightsMontana(biho, dist = 5000)
+#' biho <- npswavacore::get_park_boundary("BIHO")
+#' mt <- get_water_rights_montana(biho, dist = 5000)
 #' lapply(mt, nrow)
 
-getWaterRightsMontana <- function(aoi, dist = 0){
+get_water_rights_montana <- function(aoi, dist = 0){
   
   call <- "https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip"
   temp1 <- tempfile()

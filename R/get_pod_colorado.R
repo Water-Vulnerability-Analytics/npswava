@@ -15,7 +15,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -31,16 +31,16 @@
 #'   "National Park", otherwise `"Non-park"`). With no structures in the
 #'   area, it prints a message and returns the empty sf object.
 #' @export
-#' @seealso The other state functions, e.g. [getPODUtah()] and
-#'   [getWaterRightsMontana()].
+#' @seealso The other state functions, e.g. [get_pod_utah()] and
+#'   [get_water_rights_montana()].
 #' @examplesIf interactive()
 #' # Downloads the statewide structures file and queries the CDSS API, so it
 #' # needs internet and takes a few minutes
-#' colm <- wavacore::getParkBoundary("COLM")
-#' structures <- getPODColorado(colm)
+#' colm <- npswavacore::get_park_boundary("COLM")
+#' structures <- get_pod_colorado(colm)
 #' head(structures)
 
-getPODColorado <- function(aoi, dist = 0){
+get_pod_colorado <- function(aoi, dist = 0){
   
   call <- "https://dnrftp.state.co.us/CDSS/GIS/Structure.zip"  #download boundary
   temp1 <- tempfile()

@@ -7,7 +7,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -22,15 +22,15 @@
 #'   otherwise `"Non-park"`) and `within_park` (`"Within Park"` or `NA` in the
 #'   buffer).
 #' @export
-#' @seealso [getWaterUseUtah()] for the water use of a public water system;
-#'   [getPODUtah()] for points of diversion.
+#' @seealso [get_water_use_utah()] for the water use of a public water system;
+#'   [get_pod_utah()] for points of diversion.
 #' @examplesIf interactive()
 #' # Downloads the statewide service areas, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
-#' suppliers <- getWaterSuppliersUtah(zion, dist = 5000)
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' suppliers <- get_water_suppliers_utah(zion, dist = 5000)
 #' suppliers
 
-getWaterSuppliersUtah <- function(aoi, dist = 0){
+get_water_suppliers_utah <- function(aoi, dist = 0){
   
   call <- "https://opendata.arcgis.com/api/v3/datasets/dc62a286013f447e88fc45480077c944_0/downloads/data?format=shp&spatialRefId=26912&where=1%3D1"
   #download boundary 

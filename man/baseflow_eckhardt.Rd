@@ -59,5 +59,5 @@ Eckhardt, K. (2005). How to construct recursive digital filters for
 baseflow separation. Hydrological Processes, 19(2), 507-515.
 }
 \seealso{
-\code{\link[=listNWIS]{listNWIS()}} to find streamflow gages.
+\code{\link[=list_nwis]{list_nwis()}} to find streamflow gages.
 }

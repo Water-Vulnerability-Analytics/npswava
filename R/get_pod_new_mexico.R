@@ -8,7 +8,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -23,16 +23,16 @@
 #'   `"Non-park"`; this doesn't catch every park right) and `within_aoi`
 #'   (`"Within AOI"` or `"Within buffer"`).
 #' @export
-#' @seealso The other state functions, e.g. [getPODUtah()] and
-#'   [getPODColorado()].
+#' @seealso The other state functions, e.g. [get_pod_utah()] and
+#'   [get_pod_colorado()].
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the points of diversion, so it needs
 #' # internet
-#' band <- wavacore::getParkBoundary("BAND")
-#' pods <- getPODNewMexico(band, dist = 1000)
+#' band <- npswavacore::get_park_boundary("BAND")
+#' pods <- get_pod_new_mexico(band, dist = 1000)
 #' table(pods$within_aoi, pods$park_right)
 
-getPODNewMexico <- function(aoi, dist = 0){
+get_pod_new_mexico <- function(aoi, dist = 0){
   
   # add buffer around park boundary
   aoi_buffer <- aoi %>% 

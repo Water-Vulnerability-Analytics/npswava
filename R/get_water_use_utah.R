@@ -8,21 +8,21 @@
 #'
 #' @param WRID String or integer. The system ID of the public water system
 #'   (`SYSTEM_ID` in the page address), e.g. from the service areas of
-#'   [getWaterSuppliersUtah()]. Required.
+#'   [get_water_suppliers_utah()]. Required.
 #'
 #' @return A list of tibbles, one per water use table on the page. Empty if
 #'   the page has none.
 #' @export
-#' @seealso [getWaterSuppliersUtah()] for the service areas and their IDs.
+#' @seealso [get_water_suppliers_utah()] for the service areas and their IDs.
 #' @examplesIf interactive()
 #' # Reads pages from the Utah Geospatial Resource Center and the Division of
 #' # Water Rights, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
-#' suppliers <- getWaterSuppliersUtah(zion, dist = 5000)
-#' use <- getWaterUseUtah(suppliers$WRID[1])
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' suppliers <- get_water_suppliers_utah(zion, dist = 5000)
+#' use <- get_water_use_utah(suppliers$WRID[1])
 #' length(use)
 
-getWaterUseUtah <- function(WRID){
+get_water_use_utah <- function(WRID){
 
 url <- paste0("https://www.waterrights.utah.gov/asp_apps/viewEditPWS/pwsView.asp?SYSTEM_ID=", WRID)
 

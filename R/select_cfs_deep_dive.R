@@ -238,7 +238,7 @@ select_cfs_deep_dive <- function(df,
   #Handling missing and/or extra quadrats
   
   # function to deal with redundant quadrat
-  ID.redundant.gcm <- function(PCA) {
+  id_redundant_gcm <- function(PCA) {
     redundant.diag <- dplyr::count(PCA$diagonals)$x[which(dplyr::count(PCA$diagonals)$freq == 1)] #ID redundant diagonal
     PC.foul = PCA$PC[which(PCA$diagonals == redundant.diag)] #ID which PC has the redundant diagonal
     PCA$GCM[which(PCA$PC == PC.foul &
@@ -258,7 +258,7 @@ select_cfs_deep_dive <- function(df,
   if (!nrow(PCA[duplicated(PCA$GCM),]) > 0) {
     df$pca = df$pca #Do nothing - otherwise end up with empty quadrant. This line could be removed and make the previous statment inverse but it makes it more confusing what's gonig on that way
   } else {
-    df$pca[which(df$GCM == ID.redundant.gcm(PCA))] = NA #Removes the GCM that is in redundant diagonal
+    df$pca[which(df$GCM == id_redundant_gcm(PCA))] = NA #Removes the GCM that is in redundant diagonal
   }
   
   ## Return Selected Models

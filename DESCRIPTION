@@ -1,4 +1,4 @@
-Package: wavadeepdive
+Package: npswava
 Title: Data Retrieval and Analysis Functions for WaVA Deep Dives
 Version: 0.1.0
 Authors@R: c(
@@ -10,6 +10,8 @@ Authors@R: c(
            email = "Kristen.Cognac@colostate.edu"),
     person("Juan", "De La Torre", role = c("cre", "aut"),
            email = "juan.delatorre@colostate.edu"),
+    person("Cibi Vishnu", "Chinnasamy", role = "aut",
+           email = "Cibi.Chinnasamy@colostate.edu"),
     person("ROSS - Radical Open Science Syndicate and all contributors", role = "cph"))
 Description: Functions used by the park-specific deep-dive water supply
     vulnerability assessments of National Park Service units: retrieving
@@ -18,10 +20,10 @@ Description: Functions used by the park-specific deep-dive water supply
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-URL: https://github.com/Water-Vulnerability-Analytics/wavadeepdive
-BugReports: https://github.com/Water-Vulnerability-Analytics/wavadeepdive/issues
+URL: https://github.com/Water-Vulnerability-Analytics/npswava
+BugReports: https://github.com/Water-Vulnerability-Analytics/npswava/issues
 Remotes:
-    Water-Vulnerability-Analytics/wavacore,
+    Water-Vulnerability-Analytics/npswavacore,
     mikejohnson51/climateR,
     ropensci/rnoaa
 Imports: 
@@ -57,7 +59,7 @@ Imports:
     units,
     utils,
     vctrs,
-    wavacore
+    npswavacore
 Suggests:
     curl,
     RSelenium,

@@ -7,7 +7,7 @@
 #' Depending on the dates and the number of stations this can take a while.
 #'
 #' @param aoi sf object. The area of interest, as polygons, e.g. a park
-#'   boundary from [wavacore::getParkBoundary()]. Required.
+#'   boundary from [npswavacore::get_park_boundary()]. Required.
 #' @param park String. The park code, used only to name the file when
 #'   `save = TRUE` (`<park>_noaa.shp`). Required when `save = TRUE`.
 #' @param startDate String. The first date to download.
@@ -33,15 +33,15 @@
 #'   `id`, `date`, one column per variable (in GHCN-Daily units), `elevation`
 #'   and `name`.
 #' @export
-#' @seealso [getSNOTEL()] for SNOTEL and SCAN stations.
+#' @seealso [get_snotel()] for SNOTEL and SCAN stations.
 #' @examplesIf interactive() && requireNamespace("rnoaa", quietly = TRUE)
 #' # Downloads the station list and the daily data, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
-#' weather <- getNOAA(zion, park = "ZION", startDate = "2020-01-01",
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' weather <- get_noaa(zion, park = "ZION", startDate = "2020-01-01",
 #'                    endDate = "2020-12-31", variables = c("PRCP", "TMAX"))
 #' head(weather)
 
-getNOAA <-
+get_noaa <-
   function(aoi,
            park,
            startDate = "first",

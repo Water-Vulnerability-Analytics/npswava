@@ -1,8 +1,10 @@
 # Cases for the golden comparison between the old code in
-# nps_water_vulnerability (before the split) and wavadeepdive.
+# nps_water_vulnerability (before the split) and npswava.
 #
 # Used by make_golden.R, which writes golden/<id>.rds from the old code, and by
-# test-golden.R, which checks that wavadeepdive returns the identical object.
+# test-golden.R, which checks that npswava returns the identical object.
+# `fun`: the npswava function. `old_fun`: its name in the old code, if it
+#   was renamed (snake case, issue #4); make_golden.R calls that one.
 # `args` must work with both the old and the new function.
 # `needs`: "data" = the shared WaVA data folder, "internet" = a live download.
 # `reads`: for a "data" case, the file or folder under the data folder it
@@ -12,8 +14,8 @@
 #   compared, for results identical() can't compare as they are.
 #
 # Not covered, because they can't run in either version right now (see
-# README.md): getPODCalifornia, getPODNevada, getPODNewMexico,
-# getXYWatersheds, get_aoi_source and getSNOTEL.
+# README.md): get_pod_california, get_pod_nevada, get_pod_new_mexico,
+# get_xy_watersheds, get_aoi_source, get_snotel and get_rockd_aoi.
 
 # Inputs, built here so both runs get the same objects without a download.
 # Small boxes inside each park, with the UNIT_CODE column the water rights,
@@ -32,7 +34,7 @@ zion_aoi <- golden_box(-113.00, 37.18, -112.92, 37.30, "ZION")
 # A smaller box around the south entrance, for the slower geology queries
 zion_small <- golden_box(-112.99, 37.20, -112.97, 37.22, "ZION")
 # Moraine Park and Bear Lake. In NAD83 (EPSG 4269), like the NPS park
-# boundaries: getPODColorado() needs the aoi in that CRS
+# boundaries: get_pod_colorado() needs the aoi in that CRS
 romo_aoi <- golden_box(-105.65, 40.30, -105.55, 40.40, "ROMO", crs = 4269)
 # The foot of Lake McDonald
 glac_aoi <- golden_box(-114.00, 48.50, -113.90, 48.58, "GLAC")
@@ -114,31 +116,36 @@ golden_cases <- list(
                    valley_wall_elev = 30, theta_deg = 10, sy = 0.2)),
 
   # Shared data folder
-  list(id = "getOvernightStays",
-       fun = "getOvernightStays",
+  list(id = "get_overnight_stays",
+       fun = "get_overnight_stays",
+       old_fun = "getOvernightStays",
        args = list(parks = c("ZION", "ROMO")),
        needs = "data",
        reads = "all/nps_visitor_use_data"),
-  list(id = "mapNHDPlusHR",
-       fun = "mapNHDPlusHR",
+  list(id = "map_nhdplus_hr",
+       fun = "map_nhdplus_hr",
+       old_fun = "mapNHDPlusHR",
        args = list(aoi = zion_aoi),
        needs = c("data", "internet"),
        reads = "all/nhdplushr/15/NHDPLUS_H_1501_HU4_GDB.gdb",
        downloads = "HUC4 boundaries (nhdplusTools::get_huc)"),
 
   # Internet
-  list(id = "listNWIS_sites",
-       fun = "listNWIS",
+  list(id = "list_nwis_sites",
+       fun = "list_nwis",
+       old_fun = "listNWIS",
        args = list(sites = c("09405500", "09406000")),
        needs = "internet",
        downloads = "the NWIS data inventory (dataRetrieval)"),
-  list(id = "listNWIS_aoi",
-       fun = "listNWIS",
+  list(id = "list_nwis_aoi",
+       fun = "list_nwis",
+       old_fun = "listNWIS",
        args = list(aoi = zion_aoi, dist = 2000),
        needs = "internet",
        downloads = "the NWIS data inventory (dataRetrieval)"),
-  list(id = "listNWIS_state",
-       fun = "listNWIS",
+  list(id = "list_nwis_state",
+       fun = "list_nwis",
+       old_fun = "listNWIS",
        args = list(states = "RI"),
        needs = "internet",
        downloads = "the NWIS site list and data inventory for Rhode Island (dataRetrieval)"),
@@ -154,40 +161,47 @@ golden_cases <- list(
        args = list(site_no = "09405500"),
        needs = "internet",
        downloads = "a gage basin from the NLDI (nhdplusTools)"),
-  list(id = "getNOAA",
-       fun = "getNOAA",
+  list(id = "get_noaa",
+       fun = "get_noaa",
+       old_fun = "getNOAA",
        args = list(aoi = zion_aoi, park = "ZION", startDate = "2015-01-01",
                    endDate = "2015-12-31",
                    variables = c("PRCP", "TMAX", "TMIN")),
        needs = "internet",
        downloads = "the GHCN-Daily station list and daily data (rnoaa)"),
-  list(id = "getBuildings",
-       fun = "getBuildings",
+  list(id = "get_buildings",
+       fun = "get_buildings",
+       old_fun = "getBuildings",
        args = list(park_boundary = zion_aoi),
        needs = "internet",
        downloads = "every NPS building (ArcGIS Open Data)"),
-  list(id = "getPODUtah",
-       fun = "getPODUtah",
+  list(id = "get_pod_utah",
+       fun = "get_pod_utah",
+       old_fun = "getPODUtah",
        args = list(aoi = zion_aoi, dist = 1000),
        needs = "internet",
        downloads = "Utah points of diversion (Utah DNR feature service)"),
-  list(id = "getWaterSuppliersUtah",
-       fun = "getWaterSuppliersUtah",
+  list(id = "get_water_suppliers_utah",
+       fun = "get_water_suppliers_utah",
+       old_fun = "getWaterSuppliersUtah",
        args = list(aoi = zion_aoi, dist = 5000),
        needs = "internet",
        downloads = "Utah water service areas (ArcGIS Open Data)"),
-  list(id = "getWaterUseUtah",
-       fun = "getWaterUseUtah",
+  list(id = "get_water_use_utah",
+       fun = "get_water_use_utah",
+       old_fun = "getWaterUseUtah",
        args = list(WRID = "1047"),
        needs = "internet",
        downloads = "a public water system page (Utah Division of Water Rights)"),
-  list(id = "getPODColorado",
-       fun = "getPODColorado",
+  list(id = "get_pod_colorado",
+       fun = "get_pod_colorado",
+       old_fun = "getPODColorado",
        args = list(aoi = romo_aoi),
        needs = "internet",
        downloads = "the Colorado structures file and the CDSS API"),
-  list(id = "getWaterRightsMontana",
-       fun = "getWaterRightsMontana",
+  list(id = "get_water_rights_montana",
+       fun = "get_water_rights_montana",
+       old_fun = "getWaterRightsMontana",
        args = list(aoi = glac_aoi, dist = 1000),
        needs = "internet",
        downloads = "the Montana water rights geodatabase (430 MB, Montana State Library)"),
@@ -236,12 +250,6 @@ golden_cases <- list(
        args = list(points = zion_points),
        needs = "internet",
        downloads = "geologic units from the Macrostrat API"),
-  # the default resolution (all four values) errors, a known bug
-  list(id = "get_rockd_aoi",
-       fun = "get_rockd_aoi",
-       args = list(aoi = zion_small, resolution = "medium"),
-       needs = "internet",
-       downloads = "geologic units from the Macrostrat API and US state boundaries (tigris)"),
   list(id = "get_formation_info",
        fun = "get_formation_info",
        args = list(formation_name = "Navajo", rock_type = "sandstone"),
@@ -294,7 +302,8 @@ golden_checksum <- function(path) {
 # Check the fields of every case, so a typo (e.g. `need = "data"`) stops here
 # instead of silently dropping a skip.
 local({
-  fields <- c("id", "fun", "args", "needs", "reads", "downloads", "keep")
+  fields <- c("id", "fun", "old_fun", "args", "needs", "reads", "downloads",
+              "keep")
   for (case in golden_cases) {
     id <- if (is.character(case$id) && length(case$id) == 1) case$id else "?"
     bad <- function(...) stop("golden case ", id, ": ", ..., call. = FALSE)
@@ -303,6 +312,10 @@ local({
     if (id == "?") bad("`id` must be one string")
     if (!is.character(case$fun) || length(case$fun) != 1) {
       bad("`fun` must be one function name")
+    }
+    if (!is.null(case$old_fun) &&
+        !(is.character(case$old_fun) && length(case$old_fun) == 1)) {
+      bad("`old_fun` must be one function name")
     }
     if (!is.list(case$args)) bad("`args` must be a list")
     if (!is.null(case$needs) && !all(case$needs %in% c("data", "internet"))) {

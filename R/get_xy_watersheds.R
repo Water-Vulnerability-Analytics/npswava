@@ -39,10 +39,10 @@
 #'   which uses this for surface water and shallow groundwater sources.
 #' @examplesIf interactive()
 #' # Uses NHDPlus web services, so it needs internet
-#' ws <- getXYWatersheds(coordinates = c(-112.9877, 37.2163), crs = 4326)
+#' ws <- get_xy_watersheds(coordinates = c(-112.9877, 37.2163), crs = 4326)
 #' ws$area / 1e6 # km2
 
-getXYWatersheds <- function(sf = NULL, coordinates = NULL, crs = NULL, snap = FALSE){
+get_xy_watersheds <- function(sf = NULL, coordinates = NULL, crs = NULL, snap = FALSE){
   
   if(is.null(sf)){
     

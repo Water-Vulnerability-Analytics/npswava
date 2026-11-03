@@ -13,7 +13,7 @@
 #' stops with the error "BROKEN".
 #'
 #' @param aoi sf object or `NULL`. The area of interest, as polygons, e.g. a
-#'   park boundary from [wavacore::getParkBoundary()].
+#'   park boundary from [npswavacore::get_park_boundary()].
 #'   * An sf object: queries the bounding box of each feature (after the
 #'     `dist` buffer) and keeps the sites inside the buffered area, with the
 #'     `aoi` columns joined on.
@@ -44,15 +44,15 @@
 #'   [baseflow_eckhardt()] to separate baseflow from streamflow.
 #' @examplesIf interactive()
 #' # Queries NWIS, so it needs internet
-#' gage <- listNWIS(sites = "09405500")
+#' gage <- list_nwis(sites = "09405500")
 #' gage[, c("site_no", "site_name", "data_type", "parameter", "begin_date")]
 #'
 #' # Every site within 2 km of a park
-#' zion <- wavacore::getParkBoundary("ZION")
-#' zion_sites <- listNWIS(aoi = zion, dist = 2000)
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' zion_sites <- list_nwis(aoi = zion, dist = 2000)
 #' table(zion_sites$data_type)
 
-listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
+list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   
   #tables <- rvest::read_html('https://help.waterdata.usgs.gov/parameter_cd?group_cd=%') %>%
   #  rvest::html_nodes('table') %>%

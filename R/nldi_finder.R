@@ -11,7 +11,7 @@
 #' @return An sf polygon (CRS NAD83) of the basin with a `site_no` column,
 #'   or `NA` if the request fails (e.g. the site isn't in the NLDI).
 #' @export
-#' @seealso [listNWIS()] to find gages; [getXYWatersheds()] for the
+#' @seealso [list_nwis()] to find gages; [get_xy_watersheds()] for the
 #'   watershed of any point.
 #' @examplesIf interactive()
 #' # Queries the NLDI, so it needs internet

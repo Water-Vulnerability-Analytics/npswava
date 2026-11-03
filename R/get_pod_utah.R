@@ -16,7 +16,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -30,16 +30,17 @@
 #'   `aoi`), `park_right` (`"Park"` when `OWNER` contains "National Park",
 #'   otherwise `"Non-park"`) and `within_aoi` (`"Within AOI"` or `NA`).
 #' @export
-#' @seealso [getWaterSuppliersUtah()] and [getWaterUseUtah()] for Utah public
-#'   water systems; the other state functions, e.g. [getPODColorado()].
+#' @seealso [get_water_suppliers_utah()] and [get_water_use_utah()] for Utah
+#'   public water systems; the other state functions, e.g.
+#'   [get_pod_colorado()].
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the points of diversion, so it needs
 #' # internet
-#' zion <- wavacore::getParkBoundary("ZION")
-#' pods <- getPODUtah(zion, dist = 1000)
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' pods <- get_pod_utah(zion, dist = 1000)
 #' table(pods$within_aoi, useNA = "ifany")
 
-getPODUtah <- function(aoi, dist = 0){
+get_pod_utah <- function(aoi, dist = 0){
   
   # add buffer around park boundary
   aoi_buffer <- aoi %>% 

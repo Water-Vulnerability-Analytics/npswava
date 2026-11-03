@@ -8,7 +8,7 @@
 #' its buffer.
 #'
 #' @param park_boundary sf object. The park boundary, as polygons with a
-#'   `UNIT_CODE` column, e.g. from [wavacore::getParkBoundary()]. Required.
+#'   `UNIT_CODE` column, e.g. from [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `park_boundary` by, in meters
 #'   for a longitude/latitude CRS (like the park boundaries) or in the CRS
 #'   units otherwise.
@@ -20,15 +20,15 @@
 #' @return An sf object of building polygons (in the CRS of `park_boundary`),
 #'   with the layer's columns and `UNIT_CODE`.
 #' @export
-#' @seealso [wavacore::getParkBoundary()] for the boundary.
+#' @seealso [npswavacore::get_park_boundary()] for the boundary.
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and every NPS building, so it needs
 #' # internet and takes a few minutes
-#' zion <- wavacore::getParkBoundary("ZION")
-#' buildings <- getBuildings(zion)
+#' zion <- npswavacore::get_park_boundary("ZION")
+#' buildings <- get_buildings(zion)
 #' nrow(buildings)
 
-getBuildings <- function(park_boundary, dist = 0){
+get_buildings <- function(park_boundary, dist = 0){
 
   #install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")
   call <- "https://opendata.arcgis.com/api/v3/datasets/2bf22e15d269431e9e3380382c0a1546_2/downloads/data?format=shp&spatialRefId=3857&where=1%3D1"
