@@ -9,7 +9,7 @@ get_pod_utah(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -45,7 +45,7 @@ P = power, S = stock watering, X = mining.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the park boundaries and the points of diversion, so it needs
 # internet
-zion <- wavacore::getParkBoundary("ZION")
+zion <- npswavacore::get_park_boundary("ZION")
 pods <- get_pod_utah(zion, dist = 1000)
 table(pods$within_aoi, useNA = "ifany")
 \dontshow{\}) # examplesIf}

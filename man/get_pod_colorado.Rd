@@ -9,7 +9,7 @@ get_pod_colorado(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -46,7 +46,7 @@ and \url{https://dwr.state.co.us/Rest/GET/Help/Api/GET-api-v2-waterrights-netamo
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the statewide structures file and queries the CDSS API, so it
 # needs internet and takes a few minutes
-colm <- wavacore::getParkBoundary("COLM")
+colm <- npswavacore::get_park_boundary("COLM")
 structures <- get_pod_colorado(colm)
 head(structures)
 \dontshow{\}) # examplesIf}

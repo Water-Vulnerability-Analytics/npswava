@@ -1,23 +1,24 @@
 # Golden test fixtures
 
-`test-golden.R` checks that wavadeepdive returns exactly what the old code in
+`test-golden.R` checks that npswava returns exactly what the old code in
 `nps_water_vulnerability` returned before the split.
 
 ## The baseline: `nps_water_vulnerability` at `b62f366`
 
 We chose one commit of the playground as the reference: `b62f366`, its
-`upstream/main` when wavadeepdive was split out (2026-10-20). The golden files
-always come from that commit, even after the playground changes.
+`upstream/main` when npswava (then `wavadeepdive`) was split out
+(2026-10-20). The golden files always come from that commit, even after the
+playground changes.
 `make_golden.R` extracts `setup.R` and `src/` from that commit with
 `git archive`, whatever the local clone is on. The commit is set in one place,
 `golden_commit` at the top of `make_golden.R`.
 
 This is a temporary arrangement for checking the move out of the playground.
 Once development has moved off the playground, `b62f366` stops being the
-reference, and these tests either retire or become wavadeepdive's own
+reference, and these tests either retire or become npswava's own
 regression baseline.
 
-The setup is copied from wavacore's golden tests, with two more case fields
+The setup is copied from npswavacore's golden tests, with two more case fields
 (`reads` and `keep`, below).
 
 ## Files
@@ -54,7 +55,7 @@ The setup is copied from wavacore's golden tests, with two more case fields
 - `golden/`: the saved results. Not in git for now; whether the outputs can go
   in this public repo is an open question for the team.
 
-To create the golden files, from the wavadeepdive repo root in a fresh R
+To create the golden files, from the npswava repo root in a fresh R
 session (the clone needs commit `b62f366` and its `data` link; the script
 doesn't change the clone):
 
@@ -66,7 +67,7 @@ It takes about 10 minutes, mostly the Montana water rights geodatabase
 (about 430 MB). The checksum reads the whole NHDPlus HR geodatabase for HUC4
 1501 (930 MB), so OneDrive downloads all of it the first time.
 
-To run the comparison, point wavadeepdive at the same data folder the
+To run the comparison, point npswava at the same data folder the
 playground's `data` link points to:
 
 ```sh
@@ -95,19 +96,19 @@ errors with the service's error, so an outage is never mistaken for a pass.
 That is an error, not a mismatch.
 
 If a test fails, don't regenerate the golden file or loosen the comparison:
-find out why the output changed first. A failure can come from wavadeepdive,
+find out why the output changed first. A failure can come from npswava,
 or from something else that changed since the golden run: an R or package
 upgrade, a change to the shared data, or a live source. The failure message
 lists the R, package and data changes it finds against `golden_env.csv`, and
 names the download if the case has one. To find the cause:
 
-1. Run `make_golden.R` from a scratch copy of wavadeepdive (so the real
+1. Run `make_golden.R` from a scratch copy of npswava (so the real
    `golden/` stays as it is) to rebuild the golden files with today's
    packages, data and downloads.
 2. Compare the fresh files with the saved ones (`identical()`).
 3. If they are identical, the old code still gives the saved output, so the
-   change is in wavadeepdive. If they differ, the change came from packages,
-   data or a download, not from wavadeepdive.
+   change is in npswava. If they differ, the change came from packages,
+   data or a download, not from npswava.
 
 ## Not covered
 

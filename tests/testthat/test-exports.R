@@ -1,5 +1,5 @@
 test_that("the package exports its retrieval and analysis functions", {
-  exports <- getNamespaceExports("wavadeepdive")
+  exports <- getNamespaceExports("npswava")
   expected <- c("get_pod_california", "get_pod_colorado", "get_pod_nevada",
                 "get_pod_new_mexico", "get_pod_utah",
                 "get_water_rights_montana", "get_water_suppliers_utah",

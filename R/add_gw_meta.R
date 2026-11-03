@@ -20,7 +20,7 @@
 #' @seealso [list_nwis()] to find the sites; [aquifer_volume()].
 #' @examplesIf interactive()
 #' # Queries NWIS, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
+#' zion <- npswavacore::get_park_boundary("ZION")
 #' wells <- list_nwis(aoi = zion, dist = 5000)
 #' wells <- wells[wells$data_type_cd == "gw", ]
 #' wells <- add_gw_meta(wells)

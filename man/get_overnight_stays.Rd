@@ -38,12 +38,12 @@ Some codes in the files are changed: JOFK to JOFI, KLSE to KLGO, MAMC to
 MABE, and NCPC, NCPE, NAVC and PRPA to NACA.
 }
 \examples{
-\dontshow{if (dir.exists(wavacore::wava_data_path("all", "nps_visitor_use_data"))) withAutoprint(\{ # examplesIf}
+\dontshow{if (dir.exists(npswavacore::wava_data_path("all", "nps_visitor_use_data"))) withAutoprint(\{ # examplesIf}
 stays <- get_overnight_stays(c("ZION", "BRCA"))
 head(stays[, c("UnitCode", "ym", "RecreationVisits", "RecreationOvernightUse")])
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[wavacore:getUnitVisitation]{wavacore::getUnitVisitation()}} for monthly visits from the NPS
+\code{\link[npswavacore:get_unit_visitation]{npswavacore::get_unit_visitation()}} for monthly visits from the NPS
 API.
 }

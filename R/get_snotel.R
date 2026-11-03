@@ -9,7 +9,7 @@
 #' [utils::data()].
 #'
 #' @param aoi sf object. The area of interest, as polygons, e.g. a park
-#'   boundary from [wavacore::getParkBoundary()]. Required.
+#'   boundary from [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by, in meters for a
 #'   longitude/latitude CRS (like the park boundaries) or in the CRS units
 #'   otherwise.
@@ -36,7 +36,7 @@
 #' @seealso [get_noaa()] for GHCN-Daily stations.
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the station data, so it needs internet
-#' romo <- wavacore::getParkBoundary("ROMO")
+#' romo <- npswavacore::get_park_boundary("ROMO")
 #' snotel <- get_snotel(romo, years = 2020)
 #' head(snotel)
 

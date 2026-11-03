@@ -8,7 +8,7 @@ map_nhdplus_hr(aoi)
 }
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons, e.g. a park
-boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+boundary from \code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 }
 \value{
 An sf object of flowlines (CRS NAD83, Z and M dropped) with the
@@ -22,9 +22,9 @@ layer of each one's NHDPlus HR geodatabase from the shared data folder
 intersect \code{aoi}.
 }
 \examples{
-\dontshow{if (interactive() && dir.exists(wavacore::wava_data_path("all", "nhdplushr"))) withAutoprint(\{ # examplesIf}
+\dontshow{if (interactive() && dir.exists(npswavacore::wava_data_path("all", "nhdplushr"))) withAutoprint(\{ # examplesIf}
 # Reads the NHDPlus HR geodatabase for each HUC4 (hundreds of MB each)
-zion <- wavacore::getParkBoundary("ZION")
+zion <- npswavacore::get_park_boundary("ZION")
 flowlines <- map_nhdplus_hr(zion)
 nrow(flowlines)
 \dontshow{\}) # examplesIf}

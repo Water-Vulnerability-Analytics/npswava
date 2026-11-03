@@ -16,7 +16,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -36,7 +36,7 @@
 #' @examplesIf interactive()
 #' # Downloads the park boundaries and the points of diversion, so it needs
 #' # internet
-#' zion <- wavacore::getParkBoundary("ZION")
+#' zion <- npswavacore::get_park_boundary("ZION")
 #' pods <- get_pod_utah(zion, dist = 1000)
 #' table(pods$within_aoi, useNA = "ifany")
 

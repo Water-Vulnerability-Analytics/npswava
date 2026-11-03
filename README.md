@@ -1,9 +1,11 @@
-# wavadeepdive
+# npswava
 
 Data retrieval and analysis functions used by the park-specific deep-dive
 water supply vulnerability assessments of National Park Service (NPS) units,
 part of Water Vulnerability Analytics (WaVA). Every function has a help page,
 e.g. `?list_nwis`.
+
+This package was called `wavadeepdive` until November 2026.
 
 ## What is in it
 
@@ -19,16 +21,16 @@ e.g. `?list_nwis`.
 
 ## Install
 
-`wavadeepdive` depends on [`wavacore`](https://github.com/Water-Vulnerability-Analytics/wavacore)
+`npswava` depends on [`npswavacore`](https://github.com/Water-Vulnerability-Analytics/npswavacore)
 and on `climateR`, which is installed from GitHub.
 
 ```r
 # install.packages("remotes")
-remotes::install_github("Water-Vulnerability-Analytics/wavadeepdive")
+remotes::install_github("Water-Vulnerability-Analytics/npswava")
 ```
 
 Some functions read from the shared WaVA data folder, which is not part of this
-repository. See `wavacore::wava_data_path()` for how that folder is found.
+repository. See `npswavacore::wava_data_path()` for how that folder is found.
 
 ## AI Use Disclosure
 

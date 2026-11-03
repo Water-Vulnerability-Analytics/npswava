@@ -9,7 +9,7 @@ get_pod_new_mexico(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -38,7 +38,7 @@ keeps those inside \code{aoi} and its buffer.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the park boundaries and the points of diversion, so it needs
 # internet
-band <- wavacore::getParkBoundary("BAND")
+band <- npswavacore::get_park_boundary("BAND")
 pods <- get_pod_new_mexico(band, dist = 1000)
 table(pods$within_aoi, pods$park_right)
 \dontshow{\}) # examplesIf}

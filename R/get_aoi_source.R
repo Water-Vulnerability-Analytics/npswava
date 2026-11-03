@@ -15,7 +15,7 @@
 #' * Any other type: no area (an empty entry).
 #'
 #' The source types are matched exactly, in title case. The current WSD from
-#' [wavacore::get_wsd()] uses lowercase types (e.g. `"shallow groundwater"`),
+#' [npswavacore::get_wsd()] uses lowercase types (e.g. `"shallow groundwater"`),
 #' so convert them first. It needs internet, and makes
 #' several requests per source.
 #'

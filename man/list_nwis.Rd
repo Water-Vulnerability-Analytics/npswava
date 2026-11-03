@@ -8,7 +8,7 @@ list_nwis(aoi = NULL, dist, states = NULL, sites = NULL)
 }
 \arguments{
 \item{aoi}{sf object or \code{NULL}. The area of interest, as polygons, e.g. a
-park boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}.
+park boundary from \code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}.
 \itemize{
 \item An sf object: queries the bounding box of each feature (after the
 \code{dist} buffer) and keeps the sites inside the buffered area, with the
@@ -58,7 +58,7 @@ gage <- list_nwis(sites = "09405500")
 gage[, c("site_no", "site_name", "data_type", "parameter", "begin_date")]
 
 # Every site within 2 km of a park
-zion <- wavacore::getParkBoundary("ZION")
+zion <- npswavacore::get_park_boundary("ZION")
 zion_sites <- list_nwis(aoi = zion, dist = 2000)
 table(zion_sites$data_type)
 \dontshow{\}) # examplesIf}

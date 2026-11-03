@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(wavadeepdive)
+library(npswava)
 
-test_check("wavadeepdive")
+test_check("npswava")

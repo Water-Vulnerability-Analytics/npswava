@@ -9,7 +9,7 @@ get_pod_california(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -44,7 +44,7 @@ download and deletes it at the end. It also sets
 \dontrun{
 # Not run: needs RSelenium, Java and Firefox, and writes a temporary
 # folder in the working directory
-jotr <- wavacore::getParkBoundary("JOTR")
+jotr <- npswavacore::get_park_boundary("JOTR")
 pods <- get_pod_california(jotr, dist = 1000)
 }
 }

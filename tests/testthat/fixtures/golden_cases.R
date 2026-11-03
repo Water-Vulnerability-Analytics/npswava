@@ -1,9 +1,9 @@
 # Cases for the golden comparison between the old code in
-# nps_water_vulnerability (before the split) and wavadeepdive.
+# nps_water_vulnerability (before the split) and npswava.
 #
 # Used by make_golden.R, which writes golden/<id>.rds from the old code, and by
-# test-golden.R, which checks that wavadeepdive returns the identical object.
-# `fun`: the wavadeepdive function. `old_fun`: its name in the old code, if it
+# test-golden.R, which checks that npswava returns the identical object.
+# `fun`: the npswava function. `old_fun`: its name in the old code, if it
 #   was renamed (snake case, issue #4); make_golden.R calls that one.
 # `args` must work with both the old and the new function.
 # `needs`: "data" = the shared WaVA data folder, "internet" = a live download.

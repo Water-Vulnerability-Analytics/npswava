@@ -9,7 +9,7 @@ get_pod_nevada(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -35,8 +35,8 @@ number (\code{app}), and keeps the points inside \code{aoi} and its buffer. It
 stops with an error if either file is missing.
 }
 \examples{
-\dontshow{if (file.exists(wavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()) withAutoprint(\{ # examplesIf}
-grba <- wavacore::getParkBoundary("GRBA")
+\dontshow{if (file.exists(npswavacore::wava_data_path("all", "POD_Permits_All.shp")) && interactive()) withAutoprint(\{ # examplesIf}
+grba <- npswavacore::get_park_boundary("GRBA")
 pods <- get_pod_nevada(grba, dist = 1000)
 table(pods$PARK_RIGHT)
 \dontshow{\}) # examplesIf}

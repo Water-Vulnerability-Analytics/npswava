@@ -13,7 +13,7 @@
 #'
 #' @param aoi sf object. The area of interest, as polygons with a
 #'   `UNIT_CODE` column, e.g. a park boundary from
-#'   [wavacore::getParkBoundary()]. Required.
+#'   [npswavacore::get_park_boundary()]. Required.
 #' @param dist Numeric. The distance to buffer `aoi` by before selecting
 #'   features, in meters for a longitude/latitude CRS (like the park
 #'   boundaries) or in the CRS units otherwise.
@@ -34,7 +34,7 @@
 #' \dontrun{
 #' # Not run: needs RSelenium, Java and Firefox, and writes a temporary
 #' # folder in the working directory
-#' jotr <- wavacore::getParkBoundary("JOTR")
+#' jotr <- npswavacore::get_park_boundary("JOTR")
 #' pods <- get_pod_california(jotr, dist = 1000)
 #' }
 

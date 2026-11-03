@@ -15,7 +15,7 @@ get_snotel(
 }
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons, e.g. a park
-boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+boundary from \code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by, in meters for a
 longitude/latitude CRS (like the park boundaries) or in the CRS units
@@ -60,7 +60,7 @@ It loads \code{SCAN_SNOTEL_metadata} into the global environment with
 \examples{
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the park boundaries and the station data, so it needs internet
-romo <- wavacore::getParkBoundary("ROMO")
+romo <- npswavacore::get_park_boundary("ROMO")
 snotel <- get_snotel(romo, years = 2020)
 head(snotel)
 \dontshow{\}) # examplesIf}

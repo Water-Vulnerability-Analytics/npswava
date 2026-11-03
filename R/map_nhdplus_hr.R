@@ -8,15 +8,15 @@
 #' intersect `aoi`.
 #'
 #' @param aoi sf object. The area of interest, as polygons, e.g. a park
-#'   boundary from [wavacore::getParkBoundary()]. Required.
+#'   boundary from [npswavacore::get_park_boundary()]. Required.
 #'
 #' @return An sf object of flowlines (CRS NAD83, Z and M dropped) with the
 #'   NHDPlus HR flowline columns.
 #' @export
 #' @seealso [get_xy_watersheds()] and [nldi_finder()] for watersheds.
-#' @examplesIf interactive() && dir.exists(wavacore::wava_data_path("all", "nhdplushr"))
+#' @examplesIf interactive() && dir.exists(npswavacore::wava_data_path("all", "nhdplushr"))
 #' # Reads the NHDPlus HR geodatabase for each HUC4 (hundreds of MB each)
-#' zion <- wavacore::getParkBoundary("ZION")
+#' zion <- npswavacore::get_park_boundary("ZION")
 #' flowlines <- map_nhdplus_hr(zion)
 #' nrow(flowlines)
 
@@ -28,7 +28,7 @@ map_nhdplus_hr <- function(aoi){
   
   for(i in 1:nrow(hucs)){
     
-    nhdhr <- paste0(wavacore::wava_data_path("all", "nhdplushr"), "/", stringr::str_sub(hucs$huc4[i], 1, 2), "/")
+    nhdhr <- paste0(npswavacore::wava_data_path("all", "nhdplushr"), "/", stringr::str_sub(hucs$huc4[i], 1, 2), "/")
     
     file <- list.files(nhdhr, pattern = paste0(hucs$huc4[i], "_HU4_GDB.gdb"), full.names = TRUE)
     

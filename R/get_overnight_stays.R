@@ -27,9 +27,9 @@
 #'   `NonRecreationOvernightUse`, `TotalDayUse`, `TotalOvernightUse` and
 #'   `TotalPeople`.
 #' @export
-#' @seealso [wavacore::getUnitVisitation()] for monthly visits from the NPS
+#' @seealso [npswavacore::get_unit_visitation()] for monthly visits from the NPS
 #'   API.
-#' @examplesIf dir.exists(wavacore::wava_data_path("all", "nps_visitor_use_data"))
+#' @examplesIf dir.exists(npswavacore::wava_data_path("all", "nps_visitor_use_data"))
 #' stays <- get_overnight_stays(c("ZION", "BRCA"))
 #' head(stays[, c("UnitCode", "ym", "RecreationVisits", "RecreationOvernightUse")])
 
@@ -40,7 +40,7 @@ get_overnight_stays <- function(parks){
                   "NonRecreationVisits", "RecreationVisits",
                   "RVCampers", "TentCampers")
   
-  all_parks <- list.files(wavacore::wava_data_path("all", "nps_visitor_use_data/"), full.names = TRUE) %>%
+  all_parks <- list.files(npswavacore::wava_data_path("all", "nps_visitor_use_data/"), full.names = TRUE) %>%
     purrr::map(~data.table::fread(.) %>% dplyr::mutate(dplyr::across(dplyr::everything(), as.character))) %>%
     dplyr::bind_rows() %>%
     dplyr::mutate(UnitCode = dplyr::case_when(UnitCode == "JOFK" ~ "JOFI",
@@ -102,7 +102,7 @@ get_overnight_stays <- function(parks){
 #   
 # }
 # # Code to grab for all parks:
-#  parks <- getParkSystem() %>%
+#  parks <- get_park_system() %>%
 #    .$UNIT_CODE %>%
 #    map(~try(get_overnight_stays(park = .), silent = TRUE)) %>%
 #    keep(., is.data.frame) %>%
@@ -114,7 +114,7 @@ get_overnight_stays <- function(parks){
 # #
 # #
 # # # Parks without this info:
-# no_data <- getParkSystem() %>%
+# no_data <- get_park_system() %>%
 #   sf::st_drop_geometry() %>%
 #   dplyr::filter(!UNIT_CODE %in% parks$park)
 # 

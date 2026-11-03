@@ -36,7 +36,7 @@ dropped.
 }
 
 The source types are matched exactly, in title case. The current WSD from
-\code{\link[wavacore:get_wsd]{wavacore::get_wsd()}} uses lowercase types (e.g. \code{"shallow groundwater"}),
+\code{\link[npswavacore:get_wsd]{npswavacore::get_wsd()}} uses lowercase types (e.g. \code{"shallow groundwater"}),
 so convert them first. It needs internet, and makes
 several requests per source.
 }

@@ -17,7 +17,7 @@
 #' @examplesIf interactive()
 #' # Reads pages from the Utah Geospatial Resource Center and the Division of
 #' # Water Rights, so it needs internet
-#' zion <- wavacore::getParkBoundary("ZION")
+#' zion <- npswavacore::get_park_boundary("ZION")
 #' suppliers <- get_water_suppliers_utah(zion, dist = 5000)
 #' use <- get_water_use_utah(suppliers$WRID[1])
 #' length(use)

@@ -16,7 +16,7 @@ get_noaa(
 }
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons, e.g. a park
-boundary from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+boundary from \code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{park}{String. The park code, used only to name the file when
 \code{save = TRUE} (\verb{<park>_noaa.shp}). Required when \code{save = TRUE}.}
@@ -62,7 +62,7 @@ Depending on the dates and the number of stations this can take a while.
 \examples{
 \dontshow{if (interactive() && requireNamespace("rnoaa", quietly = TRUE)) withAutoprint(\{ # examplesIf}
 # Downloads the station list and the daily data, so it needs internet
-zion <- wavacore::getParkBoundary("ZION")
+zion <- npswavacore::get_park_boundary("ZION")
 weather <- get_noaa(zion, park = "ZION", startDate = "2020-01-01",
                    endDate = "2020-12-31", variables = c("PRCP", "TMAX"))
 head(weather)

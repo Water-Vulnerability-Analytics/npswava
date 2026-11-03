@@ -9,7 +9,7 @@ get_water_rights_montana(aoi, dist = 0)
 \arguments{
 \item{aoi}{sf object. The area of interest, as polygons with a
 \code{UNIT_CODE} column, e.g. a park boundary from
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{aoi} by before selecting
 features, in meters for a longitude/latitude CRS (like the park
@@ -46,7 +46,7 @@ twice a year. Metadata:
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the statewide geodatabase, so it needs internet and takes a
 # few minutes
-biho <- wavacore::getParkBoundary("BIHO")
+biho <- npswavacore::get_park_boundary("BIHO")
 mt <- get_water_rights_montana(biho, dist = 5000)
 lapply(mt, nrow)
 \dontshow{\}) # examplesIf}

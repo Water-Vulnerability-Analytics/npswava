@@ -8,7 +8,7 @@ get_buildings(park_boundary, dist = 0)
 }
 \arguments{
 \item{park_boundary}{sf object. The park boundary, as polygons with a
-\code{UNIT_CODE} column, e.g. from \code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}}. Required.}
+\code{UNIT_CODE} column, e.g. from \code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}}. Required.}
 
 \item{dist}{Numeric. The distance to buffer \code{park_boundary} by, in meters
 for a longitude/latitude CRS (like the park boundaries) or in the CRS
@@ -35,11 +35,11 @@ its buffer.
 \dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
 # Downloads the park boundaries and every NPS building, so it needs
 # internet and takes a few minutes
-zion <- wavacore::getParkBoundary("ZION")
+zion <- npswavacore::get_park_boundary("ZION")
 buildings <- get_buildings(zion)
 nrow(buildings)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-\code{\link[wavacore:getParkBoundary]{wavacore::getParkBoundary()}} for the boundary.
+\code{\link[npswavacore:get_park_boundary]{npswavacore::get_park_boundary()}} for the boundary.
 }
