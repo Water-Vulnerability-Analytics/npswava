@@ -106,26 +106,26 @@ select_cfs_deep_dive <- function(df,
   
   # Read in all available gcms
   all_cfs <-
-    readr::read_delim( "https://raw.githubusercontent.com/rossyndicate/CCRP_automated_climate_futures/master/data/general/GCM_skill_by_region.txt" ) %>%
-    dplyr::filter(Region == region) %>% #,
-    #Rank < 19) %>%
+    readr::read_delim( "https://raw.githubusercontent.com/rossyndicate/CCRP_automated_climate_futures/master/data/general/GCM_skill_by_region.txt" ) |>
+    dplyr::filter(Region == region) |> #,
+    #Rank < 19) |>
     dplyr::mutate(GCM = ifelse(GCM == "HadGEM2-ES.", "HadGEM2-ES365.", GCM),
-                  GCM = ifelse(GCM == "HadGEM2-CC.", "HadGEM2-CC365.", GCM)) %>%
-    tidyr::crossing(data.table::data.table(RCP = c("rcp45","rcp85"))) %>%
-    dplyr::mutate(GCM = paste0(GCM,RCP)) %>% 
+                  GCM = ifelse(GCM == "HadGEM2-CC.", "HadGEM2-CC365.", GCM)) |>
+    tidyr::crossing(data.table::data.table(RCP = c("rcp45","rcp85"))) |>
+    dplyr::mutate(GCM = paste0(GCM,RCP)) |> 
     dplyr::mutate(Skill = ifelse(Rank > 18, "Low Skill", "High Skill"))
   
   df_og <- df
 
-    df <- df %>%
+    df <- df |>
     dplyr::filter(GCM %in% all_cfs[all_cfs$Skill == "High Skill",]$GCM)
   
-  mean_x <- df[[x]] %>% mean()
-  q75_x <- df[[x]] %>% stats::quantile(.75) %>% as.numeric()
-  q25_x <- df[[x]] %>% stats::quantile(.25) %>% as.numeric()
-  mean_y <- df[[y]] %>% mean()
-  q75_y <- df[[y]] %>% stats::quantile(.75) %>% as.numeric()
-  q25_y <- df[[y]] %>% stats::quantile(.25) %>% as.numeric()
+  mean_x <- df[[x]] |> mean()
+  q75_x <- df[[x]] |> stats::quantile(.75) |> as.numeric()
+  q25_x <- df[[x]] |> stats::quantile(.25) |> as.numeric()
+  mean_y <- df[[y]] |> mean()
+  q75_y <- df[[y]] |> stats::quantile(.75) |> as.numeric()
+  q25_y <- df[[y]] |> stats::quantile(.25) |> as.numeric()
   
   print(mean_y)
   print(mean_x)
@@ -136,8 +136,8 @@ select_cfs_deep_dive <- function(df,
   low_y <- ifelse(is.null(low_y), paste0("Low ", y_name), low_y)  
   
   # CF assignment
-  df <- df %>%
-    dplyr::ungroup() %>%
+  df <- df |>
+    dplyr::ungroup() |>
     # designate climate future classification based on cf limits
     dplyr::mutate(
       CF = dplyr::case_when(
@@ -169,7 +169,7 @@ select_cfs_deep_dive <- function(df,
   hx_ly = c(ux,uy) # Lower Right Corner, high x, low y
   hx_hy = c(ux,ly) # Upper Right Corner, high x, high y
   
-  corners <- df %>%
+  corners <- df |>
     # calculate euclidiean distance of each point/model from each corner
     dplyr::mutate(
       lx_hy_dist = sqrt((!!dplyr::sym(x) - lx_hy[1]) ^ 2 + (!!dplyr::sym(y) - lx_hy[2]) ^ 2),
@@ -177,14 +177,14 @@ select_cfs_deep_dive <- function(df,
       hx_ly_dist = sqrt((!!dplyr::sym(x) - hx_ly[1]) ^ 2 + (!!dplyr::sym(y) - hx_ly[2]) ^ 2),
       hx_hy_dist =  sqrt((!!dplyr::sym(x) - hx_hy[1]) ^ 2 + (!!dplyr::sym(y) - hx_hy[2]) ^ 2),
       corners = CF
-    ) %>%
+    ) |>
     dplyr::filter(lx_hy_dist == min(lx_hy_dist) |
                     hx_hy_dist == min(hx_hy_dist) |
                     lx_ly_dist == min(lx_ly_dist) |
-                    hx_ly_dist == min(hx_ly_dist)) %>%
+                    hx_ly_dist == min(hx_ly_dist)) |>
     dplyr::select(GCM, corners)
   
-  df <- df %>%
+  df <- df |>
     dplyr::left_join(corners, by = "GCM")
   
   
@@ -193,8 +193,8 @@ select_cfs_deep_dive <- function(df,
   #Using just change in precip and avg temp (Runyon et al. methods), may want to explore other variables for more in-depth analysis at the park level.
   
   # set up for PCA
-  future_pca_1 <- df %>% 
-    dplyr::select(GCM, {{x}}, {{y}}) %>% 
+  future_pca_1 <- df |> 
+    dplyr::select(GCM, {{x}}, {{y}}) |> 
     # set up for prcomp
     tibble::column_to_rownames(var = 'GCM')
   
@@ -209,11 +209,11 @@ select_cfs_deep_dive <- function(df,
   
   
   #Take the min/max of each of the PCs
-  PCs <- pca_1_df %>% 
+  PCs <- pca_1_df |> 
     dplyr::filter(PC1 == min(PC1) |
              PC1 == max(PC1) |
              PC2 == min(PC2) |
-             PC2 == max(PC2)) %>% 
+             PC2 == max(PC2)) |> 
     tibble::rownames_to_column(var = "GCM")
   
   
@@ -226,13 +226,13 @@ select_cfs_deep_dive <- function(df,
   
   
   PCA <-
-    df %>% 
-    dplyr::filter(GCM %in% PCs$GCM) %>% 
-    dplyr::left_join(diagonals, by = "CF") %>% 
+    df |> 
+    dplyr::filter(GCM %in% PCs$GCM) |> 
+    dplyr::left_join(diagonals, by = "CF") |> 
     dplyr::right_join(PCs, by = "GCM")
   
   # create column with selected pca models
-  df <- df %>%
+  df <- df |>
     dplyr::mutate(pca = dplyr::if_else(GCM %in% PCs$GCM, CF, NA))
   
   #Handling missing and/or extra quadrats
@@ -248,7 +248,7 @@ select_cfs_deep_dive <- function(df,
   #if a quadrant is missing
   if (length(setdiff(CFs_all[CFs_all != "Central"], df$pca)) > 0) {
     missing_quadrants <- setdiff(CFs_all[CFs_all != "Central"], df$pca)
-    if (missing_quadrants %in% df$corners %>% unique()) {
+    if (missing_quadrants %in% df$corners |> unique()) {
       #assign corners selection to that CF
       df$pca[which(df$corners == setdiff(CFs_all[CFs_all != "Central"], df$pca))] = setdiff(CFs_all[CFs_all != "Central"], df$pca)
     }
@@ -264,8 +264,8 @@ select_cfs_deep_dive <- function(df,
   ## Return Selected Models
   
   # return selected methods based on method identified in parameters
-  selected_gcms <- df %>% 
-    tidyr::drop_na("pca") %>% 
+  selected_gcms <- df |> 
+    tidyr::drop_na("pca") |> 
     dplyr::select(GCM, CF, !!dplyr::sym(x), !!dplyr::sym(y))
   
   #Presentation Figure:

@@ -124,7 +124,7 @@ get_climate_future <- function(sf,
     
   }
   
-  sf <- sf %>%
+  sf <- sf |>
     dplyr::rename("join_index" = {{col_name}})
   
   all_climate_data <- vector("list", length = nrow(sf) * length(GCM))
@@ -163,7 +163,7 @@ get_climate_future <- function(sf,
                                         model = models[j],
                                         scenario = scenarios[j],
                                         startDate = start,
-                                        endDate = "2005-12-31") #%>%
+                                        endDate = "2005-12-31") #|>
           #  rename_with(
           #    .fn = ~ stringr::str_replace(., "historical", scenarios[j]),
           #    .cols = contains("historical") 
@@ -202,7 +202,7 @@ get_climate_future <- function(sf,
               gridmet_points_trans <- gridmet_points
             }
             # crop with extract to grab all touching 
-            clim <- clim %>%
+            clim <- clim |>
               purrr::map(~terra::extract(., terra::vect(gridmet_points_trans), touches = TRUE, xy = TRUE, ID = FALSE))
             
           } else if(exact == FALSE){
@@ -213,44 +213,44 @@ get_climate_future <- function(sf,
               aoi_trans <- aoi
             }
             # otherwise original method using crop (only complete grids returned)
-            clim <- clim %>%
+            clim <- clim |>
               purrr::map(~terra::crop(., aoi_trans, mask = TRUE))
             
           }
           
-          all_climate_data[[idx]] <- clim %>%
-            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) %>%
-            data.table::data.table() %>%
+          all_climate_data[[idx]] <- clim |>
+            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) |>
+            data.table::data.table() |>
             tidyr::pivot_longer(-(x:y),
                                 names_to = "var_temp",
-                                values_to = "val") %>%
+                                values_to = "val") |>
             tidyr::separate_wider_delim(var_temp, "_", 
                                         names = c("var","date","GCM",
-                                                  "Ensemble","RCP")) %>%
-            tidyr::drop_na(val) %>%
-            dplyr::group_by(x, y, date) %>%
+                                                  "Ensemble","RCP")) |>
+            tidyr::drop_na(val) |>
+            dplyr::group_by(x, y, date) |>
             tidyr::pivot_wider(names_from = "var", 
-                               values_from = "val") %>%
+                               values_from = "val") |>
             dplyr::mutate(date = as.Date(date),
                           ppt_mm = pr,
                           tmax_C = tasmax - 273.15,
                           tmin_C = tasmin - 273.15,
                           tmean_C = (tmax_C + tmin_C)/2,
-                          join_index = aoi$join_index) %>%
-            dplyr::select(-c("tasmax","tasmin","pr")) %>%
+                          join_index = aoi$join_index) |>
+            dplyr::select(-c("tasmax","tasmin","pr")) |>
             dplyr::mutate(RCP = stringr::str_replace(RCP, "historical", scenarios[j]))
           
         } else {
           
-          all_climate_data[[idx]] <- clim %>%
-            data.table::data.table() %>%
+          all_climate_data[[idx]] <- clim |>
+            data.table::data.table() |>
             # names of columns include va_mode_rcp so must rename
-            dplyr::rename_with(~ stringr::str_split(.x, "_", n = 2) %>% purrr::map_chr(1)) %>%
+            dplyr::rename_with(~ stringr::str_split(.x, "_", n = 2) |> purrr::map_chr(1)) |>
             # since polygon grabbed a single grid, does not provide the coordinates
             # of the gridMET cell, so we fill in x and y with the coordinates
             # of the sf object:
             dplyr::mutate(x = sf::st_coordinates(aoi)[[1]],
-                          y = sf::st_coordinates(aoi)[[2]]) %>%
+                          y = sf::st_coordinates(aoi)[[2]]) |>
             # Then do all other cleaning steps done for polygon sf objects:
             dplyr::mutate(date = as.Date(date),
                           ppt_mm = pr,
@@ -260,23 +260,23 @@ get_climate_future <- function(sf,
                           join_index = aoi$join_index,
                           GCM = models[j],
                           RCP = scenarios[j],
-                          Ensemble = "r1i1p1") %>%
+                          Ensemble = "r1i1p1") |>
             dplyr::select(-c("tasmax","tasmin","pr"))
           
         }
       }
     }
     
-    all_climate_data <- all_climate_data %>%
+    all_climate_data <- all_climate_data |>
       dplyr::bind_rows()
     
     
     if(exact == TRUE){
       
-      points <- all_climate_data %>%
-        dplyr::group_by(x, y) %>%
-        dplyr::summarise(.groups = "drop") %>%
-        sf::st_as_sf(coords = c("x", "y"), crs = 4326, remove = FALSE) %>%
+      points <- all_climate_data |>
+        dplyr::group_by(x, y) |>
+        dplyr::summarise(.groups = "drop") |>
+        sf::st_as_sf(coords = c("x", "y"), crs = 4326, remove = FALSE) |>
         dplyr::select("old_x" = x, "old_y" = y) 
       
       # ensure gridmet_points has coords & is POINT sf
@@ -289,17 +289,17 @@ get_climate_future <- function(sf,
       nn_idx <- sf::st_nearest_feature(points, gridmet_points)  # length == nrow(points)
       
       # buffer by 800 m safely (transform to a meters-based CRS)
-      points <- points %>%
-        dplyr::mutate(rowid = nn_idx) %>%
-        dplyr::left_join(sf::st_drop_geometry(gridmet_points) %>% tibble::rowid_to_column() %>% dplyr::select(x, y, rowid),
-                  by = "rowid") %>%
-        sf::st_drop_geometry() %>%
+      points <- points |>
+        dplyr::mutate(rowid = nn_idx) |>
+        dplyr::left_join(sf::st_drop_geometry(gridmet_points) |> tibble::rowid_to_column() |> dplyr::select(x, y, rowid),
+                  by = "rowid") |>
+        sf::st_drop_geometry() |>
         dplyr::select(-rowid)
       
-      all_climate_data <- all_climate_data %>%
-        dplyr::left_join(points, by = c("x" = "old_x", "y" = "old_y")) %>%
-        dplyr::ungroup() %>%
-        dplyr::select(-c(x,y)) %>%
+      all_climate_data <- all_climate_data |>
+        dplyr::left_join(points, by = c("x" = "old_x", "y" = "old_y")) |>
+        dplyr::ungroup() |>
+        dplyr::select(-c(x,y)) |>
         dplyr::rename(x = x.y, y = y.y)
       
       
@@ -333,7 +333,7 @@ get_climate_future <- function(sf,
                                         model = models[j],
                                         scenario = scenarios[j],
                                         startDate = start,
-                                        endDate = "2005-12-31") %>%
+                                        endDate = "2005-12-31") |>
             dplyr::rename_with(
               .fn = ~ stringr::str_replace(., "historical", scenarios[j]),
               .cols = dplyr::contains("historical") 
@@ -346,7 +346,7 @@ get_climate_future <- function(sf,
                                          startDate = "2006-01-01",
                                          endDate = end) 
           
-          clim <- clim_pre %>%
+          clim <- clim_pre |>
             dplyr::bind_rows(clim_post) 
           
         } else {
@@ -359,15 +359,15 @@ get_climate_future <- function(sf,
                                   endDate = end) 
         }
         
-        all_climate_data[[idx]] <- clim %>%
-          data.table::data.table() %>%
+        all_climate_data[[idx]] <- clim |>
+          data.table::data.table() |>
           # names of columns include va_mode_rcp so must rename
-          dplyr::rename_with(~ stringr::str_split(.x, "_", n = 2) %>% purrr::map_chr(1)) %>%
+          dplyr::rename_with(~ stringr::str_split(.x, "_", n = 2) |> purrr::map_chr(1)) |>
           # since point pulls from gridMET do not provide the coordinates
           # of the gridMET cell, we fill in x and y with the coordinates
           # of the sf object:
           dplyr::mutate(x = sf::st_coordinates(aoi)[[1]],
-                        y = sf::st_coordinates(aoi)[[2]]) %>%
+                        y = sf::st_coordinates(aoi)[[2]]) |>
           # Then do all other cleaning steps done for polygon sf objects:
           dplyr::mutate(date = as.Date(date),
                         ppt_mm = pr,
@@ -377,13 +377,13 @@ get_climate_future <- function(sf,
                         join_index = aoi$join_index,
                         GCM = models[j],
                         RCP = scenarios[j],
-                        Ensemble = "r1i1p1") %>%
+                        Ensemble = "r1i1p1") |>
           dplyr::select(-c("tasmax","tasmin","pr"))
         
       }
     }
     
-    all_climate_data <- all_climate_data %>%
+    all_climate_data <- all_climate_data |>
       dplyr::bind_rows()
     
     # Rename the join_index column

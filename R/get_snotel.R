@@ -83,9 +83,9 @@ get_snotel <- function(aoi,
     metadata <- all_dat_list[names(all_dat_list) == "metadata"]$metadata
     
     # 5. Clean up efficiently
-    final_data <- all_dat_list[names(all_dat_list) != "metadata"] %>%
-      purrr::map(~ dplyr::mutate(.x, dplyr::across(dplyr::everything(), as.character))) %>%
-      dplyr::bind_rows() %>%
+    final_data <- all_dat_list[names(all_dat_list) != "metadata"] |>
+      purrr::map(~ dplyr::mutate(.x, dplyr::across(dplyr::everything(), as.character))) |>
+      dplyr::bind_rows() |>
       dplyr::left_join(metadata, by = "Site")
     
     return(final_data)

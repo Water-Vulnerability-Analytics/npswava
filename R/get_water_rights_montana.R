@@ -58,55 +58,55 @@ get_water_rights_montana <- function(aoi, dist = 0){
   # RES1 <- st_read(list.files(temp2, full.names = TRUE), layer = "WR1RES")
   
 
-  aoi <- aoi  %>%
+  aoi <- aoi  |>
     sf::st_transform(terra::crs(POD))
   
   # add buffer around park boundary
-  aoi_buffer <- aoi %>% 
-    sf::st_zm() %>%
+  aoi_buffer <- aoi |> 
+    sf::st_zm() |>
     sf::st_buffer(dist = dist)
   
   #join sf object and table attributes and filter to park boundary region of interest
-  nearby_pods <- POD %>%    
-    sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_pods <- POD |>    
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-                  within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+                  within_park = ifelse(!is.na(within), "Within Park", NA)) |>
     dplyr::select(-within)
   
-  nearby_pous <- POU %>%
-    sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_pous <- POU |>
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-                  within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+                  within_park = ifelse(!is.na(within), "Within Park", NA)) |>
     dplyr::select(-within)
 
-  nearby_res <- RES %>%
-    sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_res <- RES |>
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-                  within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+                  within_park = ifelse(!is.na(within), "Within Park", NA)) |>
     dplyr::select(-within)
   
-  # nearby_pod1 <- POD1 %>%
-  #   sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-  #   sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  # nearby_pod1 <- POD1 |>
+  #   sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+  #   sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
   #   dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) |>
   #   dplyr::select(-within)
   
-  # nearby_pou1 <- POU1 %>%
-  #   sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-  #   sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  # nearby_pou1 <- POU1 |>
+  #   sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+  #   sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
   #   dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) |>
   #   dplyr::select(-within)
   
-  # nearby_res1 <- RES %>%
-  #   sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-  #   sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  # nearby_res1 <- RES |>
+  #   sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+  #   sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
   #   dplyr::mutate(park_right = ifelse(grepl("National Park", ALLOWNERS, ignore.case = T), "Park","Non-park"),
-  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+  #                 within_park = ifelse(!is.na(within), "Within Park", NA)) |>
   #   dplyr::select(-within)
   
   return(list("points_of_diversion" = nearby_pods, 

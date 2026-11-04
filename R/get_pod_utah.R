@@ -43,15 +43,15 @@
 get_pod_utah <- function(aoi, dist = 0){
   
   # add buffer around park boundary
-  aoi_buffer <- aoi %>% 
+  aoi_buffer <- aoi |> 
     sf::st_buffer(dist = dist)
   
   ## convert park boundary bbox to esri geom object
-  filter_geom <- aoi_buffer %>%
-    sf::st_transform(4326) %>%
-    sf::st_bbox() %>% 
-    sf::st_as_sfc(filter_geom) %>% 
-    .[[1]] %>% 
+  filter_geom <- aoi_buffer |>
+    sf::st_transform(4326) |>
+    sf::st_bbox() |> 
+    sf::st_as_sfc(filter_geom) |> 
+    _[[1]] |> 
     arcgisutils::as_esri_geometry()
  
   ## create the rest API
@@ -61,14 +61,14 @@ get_pod_utah <- function(aoi, dist = 0){
                 filter_geom,
                 "&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects")
   
-  ut_wr <- sf::st_read(url) %>%
+  ut_wr <- sf::st_read(url) |>
     sf::st_transform(sf::st_crs(aoi))
   
   #join sf object and table attributes and filter to park boundary region of interest
-  nearby_wr <- ut_wr %>%    
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_wr <- ut_wr |>    
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(park_right = ifelse(grepl("National Park", OWNER, ignore.case = T), "Park","Non-park"),
-                  within_aoi = ifelse(!is.na(within), "Within AOI", NA)) %>%
+                  within_aoi = ifelse(!is.na(within), "Within AOI", NA)) |>
     dplyr::select(-within)
   
   return(nearby_wr)

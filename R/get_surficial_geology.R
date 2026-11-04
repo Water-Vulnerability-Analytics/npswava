@@ -101,8 +101,8 @@ get_surficial_geology <- function(aoi) {
       message(sprintf("Success: Downloaded %d features.", nrow(return_dat)))
       
       # Join unit info
-      return_dat <- return_dat %>%
-        dplyr::left_join(map_units_dat %>% sf::st_drop_geometry() %>%
+      return_dat <- return_dat |>
+        dplyr::left_join(map_units_dat |> sf::st_drop_geometry() |>
                     dplyr::select(-c(OBJECTID, Symbol, Label)), 
                   by = "MapUnit")
       

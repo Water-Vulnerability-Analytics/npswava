@@ -35,26 +35,26 @@
 get_pod_new_mexico <- function(aoi, dist = 0){
   
   # add buffer around park boundary
-  aoi_buffer <- aoi %>% 
+  aoi_buffer <- aoi |> 
     sf::st_buffer(dist = dist)
   
   if(sf::st_crs(aoi_buffer)$epsg != 4326){
   
   ## convert park boundary bbox to esri geom object
-  filter_geom <- aoi_buffer %>%
-    sf::st_transform(4326) %>%
-    sf::st_bbox() %>% 
-    sf::st_as_sfc(filter_geom) %>% 
-    .[[1]] %>% 
+  filter_geom <- aoi_buffer |>
+    sf::st_transform(4326) |>
+    sf::st_bbox() |> 
+    sf::st_as_sfc(filter_geom) |> 
+    _[[1]] |> 
     arcgisutils::as_esri_geometry()
  
    } else {
     
      ## convert park boundary bbox to esri geom object
-     filter_geom <- aoi_buffer %>%
-       sf::st_bbox() %>% 
-       sf::st_as_sfc(filter_geom) %>% 
-       .[[1]] %>% 
+     filter_geom <- aoi_buffer |>
+       sf::st_bbox() |> 
+       sf::st_as_sfc(filter_geom) |> 
+       _[[1]] |> 
        arcgisutils::as_esri_geometry()
     
   }
@@ -66,7 +66,7 @@ get_pod_new_mexico <- function(aoi, dist = 0){
   
   if(sf::st_crs(aoi_buffer)$epsg != 4326){
   
-  nm_wr <- sf::st_read(url) %>%
+  nm_wr <- sf::st_read(url) |>
     sf::st_transform(sf::st_crs(aoi))
   
   } else {
@@ -76,14 +76,14 @@ get_pod_new_mexico <- function(aoi, dist = 0){
   }
   
   # join sf object and table attributes and filter to park boundary region of interest
-  nearby_wr <- nm_wr %>%  
+  nearby_wr <- nm_wr |>  
     # subset to only PODs within aoi + buffer
-    sf::st_intersection(., aoi_buffer) %>%
+    sf::st_intersection(aoi_buffer) |>
     # identify those found within aoi OR just within the buffer
-    sf::st_join(., aoi %>% dplyr::mutate(within_aoi = "Within AOI") %>% dplyr::select(within_aoi), left = TRUE) %>%
+    sf::st_join(aoi |> dplyr::mutate(within_aoi = "Within AOI") |> dplyr::select(within_aoi), left = TRUE) |>
     # identify PODs owned by park. This doesn't always work. 
     dplyr::mutate(park_right = ifelse(grepl("National Park", own_lname, ignore.case = T), "Park", "Non-park"),
-                  within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer")) %>%
+                  within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer")) |>
     sf::st_make_valid()
   
   return(nearby_wr)

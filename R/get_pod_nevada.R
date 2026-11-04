@@ -32,22 +32,22 @@
 get_pod_nevada <- function(aoi, dist=0){
   
   # add buffer around park boundary  
-  aoi_buffer <- aoi %>%
+  aoi_buffer <- aoi |>
     sf::st_buffer(dist = dist) 
   
   #read in POD attribute table
   table <- readr::read_csv(npswavacore::wava_data_path("all", "Water_Rights_Points_of_Diversion.csv"))
   
   #read in spatial points of diversion
-  nv_wr <- sf::st_read(npswavacore::wava_data_path("all", "POD_Permits_All.shp")) %>%
-    sf::st_drop_geometry() %>%
-    dplyr::inner_join(.,table, by="app") %>%
-    sf::st_as_sf(.,coords=c("longitude","latitude"), crs = 4269) %>%
-    sf::st_transform(crs=4269) %>%
-    sf::st_intersection(., aoi_buffer) %>%
-    #sf::st_join(.,dplyr::select(aoi,within=UNIT_CODE),left=TRUE) %>%
+  nv_wr <- sf::st_read(npswavacore::wava_data_path("all", "POD_Permits_All.shp")) |>
+    sf::st_drop_geometry() |>
+    dplyr::inner_join(table, by="app") |>
+    sf::st_as_sf(coords=c("longitude","latitude"), crs = 4269) |>
+    sf::st_transform(crs=4269) |>
+    sf::st_intersection(aoi_buffer) |>
+    #sf::st_join(dplyr::select(aoi,within=UNIT_CODE),left=TRUE) |>
     dplyr::mutate(PARK_RIGHT=ifelse(grepl("National Park", owner_name, ignore.case=T), "Park", "Non-park"))
-    #within_park=ifelse(UNIT_CODE==within,"Within","Outside")) %>%
+    #within_park=ifelse(UNIT_CODE==within,"Within","Outside")) |>
     #select(-within)
   
   return(nv_wr)

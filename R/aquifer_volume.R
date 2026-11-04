@@ -104,8 +104,8 @@ aquifer_volume <- function(dtw_ft,
     
     # Calculate the area of the new aquifer extent in ft2
     new_aquifer_area <- 
-     sf::st_area(new_aquifer_extent) %>% 
-      units::set_units("ft^2") %>%
+     sf::st_area(new_aquifer_extent) |> 
+      units::set_units("ft^2") |>
       as.numeric()
     
     # Calculate the total "solid" volume of the new aquifer assuming a 
@@ -144,8 +144,8 @@ aquifer_volume <- function(dtw_ft,
   }
 }
 
-#test <- well_data %>%
-#  dplyr::ungroup() %>%
-#  dplyr::filter(well == "Well 1") %>%
+#test <- well_data |>
+#  dplyr::ungroup() |>
+#  dplyr::filter(well == "Well 1") |>
 #  dplyr::mutate(aq_volume_ft3 = 
 #                  map_dbl(static_ft_c, ~aquifer_volume(dtw_ft = .)))

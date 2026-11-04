@@ -41,19 +41,19 @@ get_water_suppliers_utah <- function(aoi, dist = 0){
   utils::unzip(temp1, exdir = temp2)
   
   # add buffer around park boundary
-  aoi_buffer <- aoi %>% 
+  aoi_buffer <- aoi |> 
     sf::st_buffer(dist = dist)
   
-  ut_wu <- sf::st_read(dsn = temp2) %>%
-    sf::st_make_valid() %>% 
+  ut_wu <- sf::st_read(dsn = temp2) |>
+    sf::st_make_valid() |> 
     sf::st_transform(sf::st_crs(aoi))
   
   #join sf object and table attributes and filter to park boundary region of interest
-  nearby_wu <- ut_wu %>%    
-    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_wu <- ut_wu |>    
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(park_right = ifelse(grepl("National Park", WRNAME, ignore.case = T), "Park","Non-park"),
-                  within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
+                  within_park = ifelse(!is.na(within), "Within Park", NA)) |>
     dplyr::select(-within)
   
   return(nearby_wu)

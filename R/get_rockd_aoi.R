@@ -57,11 +57,11 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   #   grid <- st_make_grid(st_bbox(polygon), cellsize = cellsize)
   #   
   #   # Intersect the grid with the polygon
-  #   grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) %>%
+  #   grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) |>
   #     suppressMessages()
   #   
   #   # Convert to sf POINTS object
-  #   grid_points <- st_centroid(grid_intersect) %>%
+  #   grid_points <- st_centroid(grid_intersect) |>
   #     suppressMessages()
   #   
   #   return(grid_points)
@@ -75,8 +75,8 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   # Get map of us for removing points outside of boundary (errors). Add a small
   # buffer because coastal points often return errors because of slight offsets
   # between geologic map and actual coastline.
-  us_states_sf <- tigris::states(cb = TRUE, class = "sf") %>%
-    dplyr::summarize() %>%
+  us_states_sf <- tigris::states(cb = TRUE, class = "sf") |>
+    dplyr::summarize() |>
     sf::st_buffer(-.008)
   
   # Track if a fallback resolution is used
@@ -92,20 +92,20 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
     resolution_levels <- c("large", "medium", "small", "tiny")
     resolution_priority <- resolution_levels[which(resolution_levels == res):length(resolution_levels)]
     
-    # map_sources <- rmacrostrat::def_sources(source_id = geo_1$source_id) %>%
+    # map_sources <- rmacrostrat::def_sources(source_id = geo_1$source_id) |>
     #  dplyr::filter(area == min(area, na.rm = TRUE))
     
     # Get character string of available map sources
-    map_sources_str <- get_rockd_result[["source_id"]] %>%
-      toString() %>%
-      gsub(" ", "", .) %>%
+    map_sources_str <- get_rockd_result[["source_id"]] |>
+      toString() |>
+      gsub(" ", "", x = _) |>
       paste(collapse = ",")
     
     # Download map source metadata to allow selection of resolution
     map_sources <- RCurl::getURL(paste0("https://macrostrat.org/api/v2/defs/sources?source_id=",
                                         map_sources_str,
                                         "&format=geojson_bare"),
-                                 .opts = RCurl::curlOptions(ssl.verifypeer = FALSE, verbose = FALSE)) %>%
+                                 .opts = RCurl::curlOptions(ssl.verifypeer = FALSE, verbose = FALSE)) |>
       geojsonsf::geojson_wkt()
     
     for (r in resolution_priority) {
@@ -123,7 +123,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   }
   if(terra::crs(us_states_sf) != terra::crs(aoi)){
     
-    aoi <- aoi %>% sf::st_transform(terra::crs(us_states_sf))
+    aoi <- aoi |> sf::st_transform(terra::crs(us_states_sf))
   
   }
   # Create grid of points within AOI
@@ -141,15 +141,15 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   geo_1 <- get_rockd(aoi_points[1])
   
   # Transform aoi_points to crs of geo_1
-  aoi_points <- aoi_points %>% 
+  aoi_points <- aoi_points |> 
     sf::st_transform(sf::st_crs(geo_1))
   
   source <- get_sources_rockd(geo_1)
   
   # Filter geo_1 to only include geologic layers from that source
-  geo_1 <- geo_1 %>%
-    dplyr::filter(source_id == source) %>%
-    sf::st_make_valid() %>%
+  geo_1 <- geo_1 |>
+    dplyr::filter(source_id == source) |>
+    sf::st_make_valid() |>
     dplyr::mutate(
       b_age = as.character(b_age),
       b_int_id = as.character(b_int_id),
@@ -161,11 +161,11 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   
   # Select all points that don't overlap with geo_1 and subsequently pull
   # geology for those points, repeating this selection process
-  new_aoi_points <- aoi_points %>%
-    sf::st_intersects(geo_1) %>%
-    lengths() %>%
-    `==`(0) %>%
-    aoi_points[.]
+  n_overlaps <- aoi_points |>
+    sf::st_intersects(geo_1) |>
+    lengths()
+
+  new_aoi_points <- aoi_points[n_overlaps == 0]
   
   
   # Pt num is the point number for existing points in the grid. Sometimes,
@@ -191,9 +191,9 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
     
     if (nrow(geo_2) > 0) {
       source <- get_sources_rockd(geo_2)
-      geo_2 <- geo_2 %>%
-        dplyr::filter(source_id == source) %>%
-        sf::st_make_valid() %>%
+      geo_2 <- geo_2 |>
+        dplyr::filter(source_id == source) |>
+        sf::st_make_valid() |>
         dplyr::mutate(
           b_age = as.character(b_age),
           b_int_id = as.character(b_int_id),
@@ -208,11 +208,11 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
     new_aoi_points <- new_aoi_points[-pt_num]
     
     # Remove any other points that intersect the newly returned geologic extent
-    new_aoi_points <- new_aoi_points %>%
-      sf::st_intersects(geo_2) %>%
-      lengths() %>%
-      `==`(0) %>%
-      new_aoi_points[.]
+    n_overlaps <- new_aoi_points |>
+      sf::st_intersects(geo_2) |>
+      lengths()
+
+    new_aoi_points <- new_aoi_points[n_overlaps == 0]
     
     # Bind geo_2 to geo_1
     geo_1 <- dplyr::bind_rows(geo_1, geo_2)
@@ -251,8 +251,8 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   
   if (crop == TRUE) {
     # Crop if arg is TRUE
-    final_geo <- geo_1 %>%
-      sf::st_crop(aoi %>% sf::st_transform(sf::st_crs(geo_1)))
+    final_geo <- geo_1 |>
+      sf::st_crop(aoi |> sf::st_transform(sf::st_crs(geo_1)))
   } else {
     final_geo <- geo_1
   }

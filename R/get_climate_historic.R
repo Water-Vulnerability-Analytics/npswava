@@ -67,7 +67,7 @@ get_climate_historic <- function(sf,
                                  return_grid = FALSE) {
   
   # 1. Setup and Rename ID column
-  sf <- sf %>% dplyr::rename("join_index" = {{col_name}})
+  sf <- sf |> dplyr::rename("join_index" = {{col_name}})
   all_climate_data <- vector("list", length = nrow(sf))
   
   if (return_grid) {
@@ -95,51 +95,53 @@ get_climate_historic <- function(sf,
       
       # POPULATE GRID 
       if (return_grid) {
-        grids[[i]] <- terra::as.polygons(clim[[1]], values = FALSE, dissolve = FALSE, na.rm = TRUE) %>%
-          sf::st_as_sf() %>%
-          .[aoi_trans, ]
+        grids[[i]] <- terra::as.polygons(clim[[1]], values = FALSE, dissolve = FALSE, na.rm = TRUE) |>
+          sf::st_as_sf() |>
+          _[aoi_trans, ]
       }
       
       # Processing Data
       if (!is.data.frame(clim) || inherits(clim[[1]], "SpatRaster")) {
         if (exact) {
           # Weighted Extraction
-          all_climate_data[[i]] <- clim %>%
-            purrr::map(~terra::extract(., terra::vect(aoi_trans), xy = TRUE, touches = TRUE, weights = TRUE)) %>%
-            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) %>%
-            data.table::data.table() %>%
-            tidyr::pivot_longer(-c(x, y, ID, weight), names_to = "var_temp", values_to = "val") %>%
-            tidyr::separate_wider_delim(var_temp, "_", names = c("var", "date")) %>%
-            tidyr::drop_na(val) %>%
-            dplyr::group_by(x, y, date) %>%
-            tidyr::pivot_wider(names_from = "var", values_from = "val") %>%
+          all_climate_data[[i]] <- clim |>
+            purrr::map(~terra::extract(., terra::vect(aoi_trans), xy = TRUE, touches = TRUE, weights = TRUE)) |>
+            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) |>
+            data.table::data.table() |>
+            tidyr::pivot_longer(-c(x, y, ID, weight), names_to = "var_temp", values_to = "val") |>
+            tidyr::separate_wider_delim(var_temp, "_", names = c("var", "date")) |>
+            tidyr::drop_na(val) |>
+            dplyr::group_by(x, y, date) |>
+            tidyr::pivot_wider(names_from = "var", values_from = "val") |>
             dplyr::mutate(date = as.Date(date),
                           ppt_mm = pr,
                           tmax_C = tmmx - 273.15,
                           tmin_C = tmmn - 273.15,
                           tmean_C = (tmax_C + tmin_C)/2,
-                          join_index = aoi$join_index) %>%
-            dplyr::rename(area_weight = weight) %>%
+                          join_index = aoi$join_index) |>
+            dplyr::rename(area_weight = weight) |>
             dplyr::select(-dplyr::any_of(c("ID", "tmmx", "tmmn", "pr")))
           
         } else {
           # Standard Crop/Mask
-          all_climate_data[[i]] <- clim %>%
-            purrr::map(~terra::crop(., terra::vect(aoi_trans), mask = TRUE)) %>%         
-            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) %>%
-            data.table::data.table() %>%
-            tidyr::pivot_longer(-c(x, y), names_to = "var_temp", values_to = "val") %>%
-            tidyr::separate_wider_delim(var_temp, "_", names = c("var", "date")) %>%
-            tidyr::drop_na(val) %>%
-            dplyr::group_by(x, y, date) %>%
-            tidyr::pivot_wider(names_from = "var", values_from = "val") %>%
+          clim_wide <- clim |>
+            purrr::map(~terra::crop(., terra::vect(aoi_trans), mask = TRUE)) |>
+            purrr::map_dfr(~ terra::as.data.frame(., xy = TRUE)) |>
+            data.table::data.table() |>
+            tidyr::pivot_longer(-c(x, y), names_to = "var_temp", values_to = "val") |>
+            tidyr::separate_wider_delim(var_temp, "_", names = c("var", "date")) |>
+            tidyr::drop_na(val) |>
+            dplyr::group_by(x, y, date) |>
+            tidyr::pivot_wider(names_from = "var", values_from = "val")
+
+          all_climate_data[[i]] <- clim_wide |>
             dplyr::mutate(date = as.Date(date),
-                          ppt_mm = if("pr" %in% names(.)) {pr} else {NA_real_},
-                          tmax_C = if("tmmx" %in% names(.)) {tmmx - 273.15} else {NA_real_},
-                          tmin_C = if("tmmn" %in% names(.)) {tmmn - 273.15} else {NA_real_},
+                          ppt_mm = if("pr" %in% names(clim_wide)) {pr} else {NA_real_},
+                          tmax_C = if("tmmx" %in% names(clim_wide)) {tmmx - 273.15} else {NA_real_},
+                          tmin_C = if("tmmn" %in% names(clim_wide)) {tmmn - 273.15} else {NA_real_},
                           tmean_C = (tmax_C + tmin_C)/2,
                           join_index = aoi$join_index,
-                          area_weight = NA) %>%
+                          area_weight = NA) |>
             dplyr::select(-dplyr::any_of(c("tmmx", "tmmn", "pr")))
         }
       }
@@ -159,22 +161,24 @@ get_climate_historic <- function(sf,
         # Fetch small grid for point visualization
         point_grid_raw <- climateR::getGridMET(AOI = sf::st_buffer(aoi, 4000), varname = "tmmx", 
                                                startDate = start, endDate = start)
-        grids[[i]] <- terra::as.polygons(point_grid_raw[[1]], values = FALSE, dissolve = FALSE) %>%
-          sf::st_as_sf() %>%
-          .[sf::st_transform(aoi, terra::crs(point_grid_raw[[1]])), ]
+        grids[[i]] <- terra::as.polygons(point_grid_raw[[1]], values = FALSE, dissolve = FALSE) |>
+          sf::st_as_sf() |>
+          _[sf::st_transform(aoi, terra::crs(point_grid_raw[[1]])), ]
       }
       
-      all_climate_data[[i]] <- clim %>%
-        data.table::data.table() %>%
+      clim_table <- clim |>
+        data.table::data.table()
+
+      all_climate_data[[i]] <- clim_table |>
         dplyr::mutate(x = sf::st_coordinates(sf::st_centroid(aoi))[[1]],
                       y = sf::st_coordinates(sf::st_centroid(aoi))[[2]],
                       date = as.Date(date),
-                      ppt_mm = if("pr" %in% names(.)) {pr} else {NA_real_},
-                      tmax_C = if("tmmx" %in% names(.)) {tmmx - 273.15} else {NA_real_},
-                      tmin_C = if("tmmn" %in% names(.)) {tmmn - 273.15} else {NA_real_},
+                      ppt_mm = if("pr" %in% names(clim_table)) {pr} else {NA_real_},
+                      tmax_C = if("tmmx" %in% names(clim_table)) {tmmx - 273.15} else {NA_real_},
+                      tmin_C = if("tmmn" %in% names(clim_table)) {tmmn - 273.15} else {NA_real_},
                       tmean_C = (tmax_C + tmin_C)/2,
                       join_index = aoi$join_index,
-                      area_weight = NA) %>%
+                      area_weight = NA) |>
         dplyr::select(-dplyr::any_of(c("tmmx", "tmmn", "pr")))
     }
     

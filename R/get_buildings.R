@@ -38,20 +38,20 @@ get_buildings <- function(park_boundary, dist = 0){
   temp2 <- tempfile()
   utils::unzip(temp1, exdir = temp2)
 
-  buffer <- park_boundary %>% 
+  buffer <- park_boundary |> 
     sf::st_buffer(dist = dist)
   
-  buildings <- sf::st_read(temp2, layer = "NPS_-_Buildings_-_Web_Mercator") %>%
-    sf::st_make_valid() %>% 
+  buildings <- sf::st_read(temp2, layer = "NPS_-_Buildings_-_Web_Mercator") |>
+    sf::st_make_valid() |> 
     sf::st_zm() 
   
   if(sf::st_crs(buildings) != sf::st_crs(buffer)){
-    buildings <- buildings %>%
+    buildings <- buildings |>
       sf::st_transform(sf::st_crs(park_boundary))
   }
   
-  buildings <- buildings %>%
-    sf::st_join(., dplyr::select(buffer, UNIT_CODE)) %>%
+  buildings <- buildings |>
+    sf::st_join(dplyr::select(buffer, UNIT_CODE)) |>
     dplyr::filter(!is.na(UNIT_CODE))
 
   return(buildings)
