@@ -21,6 +21,32 @@ regression baseline.
 The setup is copied from npswavacore's golden tests, with two more case fields
 (`reads` and `keep`, below).
 
+## A second baseline: playground PR #165
+
+The six functions from playground PR #165 (issue #6) aren't in `b62f366`, so
+their cases are marked `baseline = "pr165"` and compared with the code at
+`7bc0211`, the head of that PR (2026-10-27). `make_golden_pr165.R` writes them,
+and `make_golden.R` leaves them out. Repoint `golden_commit` in
+`make_golden_pr165.R` to the merge commit once the PR is merged, if the six files
+changed.
+
+Their inputs are made up (no shared data, downloads or random numbers), and
+fitted models and plots are reduced to what comes out of them (coefficients,
+tables, layers). Two more values of `needs` apply: `"whitebox"` (the WhiteboxTools
+binary) and `"forecast"` (a suggested package). Each skips with a reason that
+names the case.
+
+```sh
+Rscript tests/testthat/fixtures/make_golden_pr165.R ../nps_water_vulnerability
+```
+
+It takes about a minute, adds `golden/<id>.rds`, `golden_info_pr165.txt` and
+`golden_env_pr165.csv`, and changes nothing else in `golden/`. `make_golden.R`
+empties `golden/` when it succeeds, so run this one after it. `setup.R` at that
+commit also needs `ggspatial`, `sfnetworks` and `tidygraph`.
+
+The same rule applies: a failure is reported, not fixed by regenerating.
+
 ## Files
 
 - `golden_cases.R`: the calls to compare and the inputs they use. Each case
