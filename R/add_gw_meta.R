@@ -33,7 +33,7 @@ add_gw_meta <- function(nwis_groundwater) {
 get_well_meta <- function(gw_list) {
   
   # First, get well metadata using dataRetrieval function 'readNWISsite'
-  nwis_site_dat <- dataRetrieval::readNWISsite(gw_list$site_no) %>% 
+  nwis_site_dat <- dataRetrieval::readNWISsite(gw_list$site_no) |> 
     dplyr::select(c("site_no",
                     "state_cd",
                     "huc_cd", 
@@ -46,8 +46,8 @@ get_well_meta <- function(gw_list) {
                     "aqfr_type_cd", 
                     "well_depth_va"))
  
-  nwis_groundwater_meta <- gw_list %>%
-    dplyr::left_join(., nwis_site_dat, by = "site_no")  
+  nwis_groundwater_meta <- gw_list |>
+    dplyr::left_join(nwis_site_dat, by = "site_no")  
   
   return(nwis_groundwater_meta)
   
@@ -74,11 +74,11 @@ national_table <- dataRetrieval::read_waterdata_metadata("national-aquifer-codes
 aquifer_types <- dataRetrieval::read_waterdata_metadata("aquifer-types")
 #hucs <- read_waterdata_metadata("hydrologic-unit-codes")
 
-nwis_groundwater_meta <- nwis_groundwater_meta %>%
-  dplyr::left_join(., aquifer_table, 
-             by = c("aqfr_cd" = "aquifer_code")) %>%
-  dplyr::left_join(., national_table,
-                   by = c("nat_aqfr_cd" = "national_aquifer_code")) %>%
+nwis_groundwater_meta <- nwis_groundwater_meta |>
+  dplyr::left_join(aquifer_table, 
+             by = c("aqfr_cd" = "aquifer_code")) |>
+  dplyr::left_join(national_table,
+                   by = c("nat_aqfr_cd" = "national_aquifer_code")) |>
   dplyr::left_join(aquifer_types, 
                    by = c("aqfr_type_cd" = "aquifer_type"))
 

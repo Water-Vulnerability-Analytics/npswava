@@ -22,6 +22,8 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 URL: https://github.com/Water-Vulnerability-Analytics/npswava
 BugReports: https://github.com/Water-Vulnerability-Analytics/npswava/issues
+Depends:
+    R (>= 4.3.0)
 Remotes:
     Water-Vulnerability-Analytics/npswavacore,
     mikejohnson51/climateR,
@@ -41,7 +43,6 @@ Imports:
     janitor,
     jsonlite,
     lubridate,
-    magrittr,
     nhdplusTools,
     purrr,
     RCurl,

@@ -33,23 +33,22 @@ map_nhdplus_hr <- function(aoi){
     file <- list.files(nhdhr, pattern = paste0(hucs$huc4[i], "_HU4_GDB.gdb"), full.names = TRUE)
     
     # filter out and clip the catchment features within the park boundaries:
-    flowlines[[i]] <- sf::st_read(dsn = file, layer = "NHDFlowline") %>%
+    flowlines[[i]] <- sf::st_read(dsn = file, layer = "NHDFlowline") |>
       sf::st_zm()
     
     if(sf::st_crs(aoi)$epsg != 4269){
-      flowlines[[i]] <- flowlines[[i]] %>%
-        .[sf::st_transform(aoi, 4269),]
+      flowlines[[i]] <- flowlines[[i]] |>
+        _[sf::st_transform(aoi, 4269),]
     } else {
       
-      flowlines[[i]] <- flowlines[[i]] %>%
-        .[aoi,]
+      flowlines[[i]] <- flowlines[[i]] |>
+        _[aoi,]
     }
     
   }
   
-  flowlines<- dplyr::bind_rows(flowlines) %>%
-    
-    
-    return(flowlines)
-  
+  flowlines <- dplyr::bind_rows(flowlines)
+
+  return(invisible(flowlines))
+
 }

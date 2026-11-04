@@ -61,17 +61,17 @@ get_noaa <-
     
     
     #pull all stations and make spatial
-    all <- rnoaa::ghcnd_stations() %>%
+    all <- rnoaa::ghcnd_stations() |>
       sf::st_as_sf(coords = c("longitude", "latitude"), crs = 4326)
     
     
     #filter to aoi
-    station_aoi <- all %>%
-      sf::st_transform(sf::st_crs(aoi)) %>%
-      sf::st_filter(aoi) %>%
-      dplyr::group_by(id, elevation, name, geometry, first_year) %>%
-      dplyr::summarize() %>%
-      sf::st_join(aoi) %>%
+    station_aoi <- all |>
+      sf::st_transform(sf::st_crs(aoi)) |>
+      sf::st_filter(aoi) |>
+      dplyr::group_by(id, elevation, name, geometry, first_year) |>
+      dplyr::summarize() |>
+      sf::st_join(aoi) |>
       dplyr::distinct(.keep_all = TRUE)
     
     
@@ -80,9 +80,9 @@ get_noaa <-
       startDate <- paste(min(station_aoi$first_year), "01", "01", sep = "-")
     }
     
-    station_aoi <- station_aoi %>%
-      dplyr::group_by(id, elevation, name, geometry) %>%
-      dplyr::summarize() %>%
+    station_aoi <- station_aoi |>
+      dplyr::group_by(id, elevation, name, geometry) |>
+      dplyr::summarize() |>
       dplyr::distinct(.keep_all = TRUE)
     
     #get weather data for all stations (depending on dates and how many stations this can take a while)
@@ -92,8 +92,8 @@ get_noaa <-
     
     
     #tie back to coordinates
-    final_data <- weather_data %>%
-      dplyr::left_join(., station_aoi, by = "id") %>%
+    final_data <- weather_data |>
+      dplyr::left_join(station_aoi, by = "id") |>
       sf::st_as_sf() #add argument on whether to return sf or tibble?
     
     if (save == TRUE) {

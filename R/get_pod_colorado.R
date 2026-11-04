@@ -50,22 +50,22 @@ get_pod_colorado <- function(aoi, dist = 0){
   utils::unzip(temp1, exdir = temp2)
   
   # add buffer around park boundary
-  aoi_buffer <- aoi %>%
-    sf::st_zm() %>%
+  aoi_buffer <- aoi |>
+    sf::st_zm() |>
     sf::st_buffer(dist = dist)
   
-  co_wr <- sf::st_read(dsn = temp2) %>%
-    sf::st_make_valid() %>% 
+  co_wr <- sf::st_read(dsn = temp2) |>
+    sf::st_make_valid() |> 
     sf::st_transform(4269)
   
   #join sf object and table attributes and filter to park boundary region of interest
-  nearby_wr <- co_wr %>%
-    #dplyr::filter(FeatureTyp == "Point of Diversion") %>%
-    sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi, within = UNIT_CODE), left = TRUE) %>%
+  nearby_wr <- co_wr |>
+    #dplyr::filter(FeatureTyp == "Point of Diversion") |>
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi, within = UNIT_CODE), left = TRUE) |>
     dplyr::mutate(#park_right = ifelse(grepl("National Park", OWNER, ignore.case = T), "Park","Non-park"),
-      within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
-    dplyr::select(-within) %>%
+      within_park = ifelse(!is.na(within), "Within Park", NA)) |>
+    dplyr::select(-within) |>
     dplyr::filter(stringr::str_detect(CurrInUse, "(U)|(A)|(F)")) # Filter for active structures only
   
   if(nrow(nearby_wr) == 0){
@@ -92,10 +92,10 @@ get_pod_colorado <- function(aoi, dist = 0){
     return(final_df)
   }
   
-  try(divs_api <-  nearby_wr$WDID %>%
-        purrr::map(~ try(div_downloader(.), silent = TRUE)) %>%
-        dplyr::bind_rows() %>%
-        .$ResultList %>%
+  try(divs_api <-  nearby_wr$WDID |>
+        purrr::map(~ try(div_downloader(.), silent = TRUE)) |>
+        dplyr::bind_rows() |>
+        _$ResultList |>
         dplyr::distinct(.keep_all = TRUE), silent = TRUE)
   
   wr_downloader <- function(WDID){
@@ -117,14 +117,14 @@ get_pod_colorado <- function(aoi, dist = 0){
     return(final_df)
   }
   
-  try(wr_api <-  nearby_wr$WDID %>%
-        purrr::map(~ try(wr_downloader(.), silent = TRUE)) %>%
-        dplyr::bind_rows() %>%
-        .$ResultList %>%
+  try(wr_api <-  nearby_wr$WDID |>
+        purrr::map(~ try(wr_downloader(.), silent = TRUE)) |>
+        dplyr::bind_rows() |>
+        _$ResultList |>
         dplyr::distinct(.keep_all = TRUE), silent = TRUE)
   
-  try(final_wr <- dplyr::left_join(nearby_wr, divs_api, by = c("WDID"= "wdid")) %>%
-        dplyr::left_join(., wr_api,by = c("WDID"= "wdid")) %>%
+  try(final_wr <- dplyr::left_join(nearby_wr, divs_api, by = c("WDID"= "wdid")) |>
+        dplyr::left_join(wr_api,by = c("WDID"= "wdid")) |>
         dplyr::rename(associatedCaseNumbers = associatedCaseNumbers.x,
                waterDistrict = waterDistrict.x, 
                structureType = structureType.x, 
@@ -132,11 +132,11 @@ get_pod_colorado <- function(aoi, dist = 0){
                division = division.x, 
                locationAccuracy = locationAccuracy.x, 
                streamMile = streamMile.x, 
-               structureName = structureName.x) %>%
+               structureName = structureName.x) |>
         # duplicate info columns
         dplyr::select(-c(county.x, county.y, gnisId.y, division.y, latitude, longitude, locationAccuracy.y, pm.x, pm.y, 
                   range.y, section.y, streamMile.y, structureName.y, structureType.y, township.y, waterDistrict.y,
-                  waterSource.x, waterSource.y, associatedCaseNumbers.y)) %>%
+                  waterSource.x, waterSource.y, associatedCaseNumbers.y)) |>
         dplyr::mutate(park_right = ifelse(grepl("National Park", associatedContacts, ignore.case = T), "Park","Non-park"))
   , silent = TRUE)
   

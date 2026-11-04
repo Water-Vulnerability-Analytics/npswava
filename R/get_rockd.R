@@ -31,19 +31,19 @@ get_rockd <- function(points){
   # Transform points to 4326 if not already 4326, then 
   # grab the coordinates for later steps:
   if(sf::st_crs(points)$epsg != 4326) {
-    aoi <- points %>%
-      sf::st_transform(4326) %>%
-      sf::st_coordinates() %>%
-      dplyr::as_tibble() %>%
-      dplyr::distinct(X, Y) %>%
+    aoi <- points |>
+      sf::st_transform(4326) |>
+      sf::st_coordinates() |>
+      dplyr::as_tibble() |>
+      dplyr::distinct(X, Y) |>
       tibble::rowid_to_column()
   
     } else {
       # Grab the coordinates for later steps:
-    aoi <- points %>%
-      sf::st_coordinates() %>%
-      dplyr::as_tibble() %>%
-      dplyr::distinct(X, Y) %>%
+    aoi <- points |>
+      sf::st_coordinates() |>
+      dplyr::as_tibble() |>
+      dplyr::distinct(X, Y) |>
       tibble::rowid_to_column()
   }
   
@@ -55,18 +55,18 @@ get_rockd <- function(points){
                               "&lng=",
                               aoi$X[i],
                               "&adjacents=true&format=geojson_bare"),#geologic_units/map?strat_name_id=2683&format=geojson_bare",
-                       .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>%
-      stringr::str_replace_all(., "\u000B", "")
+                       .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) |>
+      stringr::str_replace_all("\u000B", "")
     
     # If not an empty object, then extract geojson
-    if(jsonlite::fromJSON(y)$features %>% length() > 0) {
-      sf_temp[[i]] <- geojsonsf::geojson_wkt(y) %>%
+    if(jsonlite::fromJSON(y)$features |> length() > 0) {
+      sf_temp[[i]] <- geojsonsf::geojson_wkt(y) |>
         dplyr::mutate(aoi$rowid[i])
     }
   }
   
-  sf_temp <- sf_temp %>% dplyr::bind_rows() %>%
-    sf::st_as_sf(., wkt = 'geometry', crs = 4326)
+  sf_temp <- sf_temp |> dplyr::bind_rows() |>
+    sf::st_as_sf(wkt = 'geometry', crs = 4326)
   
   return(sf_temp)
   

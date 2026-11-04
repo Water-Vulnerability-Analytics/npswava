@@ -45,7 +45,7 @@ get_pod_california <- function(aoi, dist=0){
   # create a temporary directory for all raw datafiles to be sent to
   dir.create(file.path(getwd(),"/temp_ewrims/"), showWarnings = FALSE)
   
-  downloadPath <- file.path(getwd(),"/temp_ewrims/") #%>% stringr::str_replace_all("/", "\\\\\\\\")
+  downloadPath <- file.path(getwd(),"/temp_ewrims/") #|> stringr::str_replace_all("/", "\\\\\\\\")
   
   
   # make sure server downloads data into appropriate folder (i.e., our temporary folder)
@@ -78,24 +78,24 @@ get_pod_california <- function(aoi, dist=0){
   try(utils::unzip(temp,exdir=paste0(getwd(),"/temp_ewrims/eWRIMS.gdb")))
   
   # add buffer around park boundary  
-  aoi_buffer <- aoi %>%
+  aoi_buffer <- aoi |>
     sf::st_buffer(dist = dist) 
   
   #read in spatial points of diversion
-  try(ca_wr <- sf::st_read(paste0(getwd(),"/temp_ewrims/eWRIMS.gdb")) %>%
+  try(ca_wr <- sf::st_read(paste0(getwd(),"/temp_ewrims/eWRIMS.gdb")) |>
     sf::st_transform(crs=4269))
   
   #read in POD attribute table
   try(table <- sf::st_read(paste0(getwd(),"/temp_ewrims/eWRIMS.gdb"), layer = "POD_Attributes"))
   
   #join sf object and table attributes and filter to park boundary region of interest
-  nearby_wr <- ca_wr %>%
-    dplyr::select(POD_ID,LATITUDE,LONGITUDE,DIVERSION_SITE_NAME,SOURCE_NAME) %>%
-    dplyr::inner_join(., table, by=c("POD_ID"="CORE_POD_ID")) %>%
-    sf::st_intersection(., dplyr::select(aoi_buffer, UNIT_CODE)) %>%
-    sf::st_join(.,dplyr::select(aoi,within=UNIT_CODE),left=TRUE) %>%
+  nearby_wr <- ca_wr |>
+    dplyr::select(POD_ID,LATITUDE,LONGITUDE,DIVERSION_SITE_NAME,SOURCE_NAME) |>
+    dplyr::inner_join(table, by=c("POD_ID"="CORE_POD_ID")) |>
+    sf::st_intersection(dplyr::select(aoi_buffer, UNIT_CODE)) |>
+    sf::st_join(dplyr::select(aoi,within=UNIT_CODE),left=TRUE) |>
     dplyr::mutate(park_right=ifelse(grepl("National Park", LAST_NAME, ignore.case=T), "Park","Non-park"),
-                  within_park=ifelse(UNIT_CODE==within,"Within","Outside")) %>%
+                  within_park=ifelse(UNIT_CODE==within,"Within","Outside")) |>
     dplyr::select(-within)
   
   # end the RSelenium server session

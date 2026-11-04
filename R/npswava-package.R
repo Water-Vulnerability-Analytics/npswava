@@ -1,9 +1,8 @@
 #' @keywords internal
 "_PACKAGE"
 
-## Functions from other packages are called as `pkg::fun()`. The only imports
-## are `%>%` (operators can't be called with `::`, see utils-pipe.R) and the
-## ggfortify one below.
+## Functions from other packages are called as `pkg::fun()`. The only import is
+## the ggfortify one below.
 
 ## ggfortify provides the autoplot() method for PCA objects; importing any of
 ## its functions loads it.
@@ -15,7 +14,7 @@ NULL
 
 ## Column names used inside dplyr and data.table calls.
 utils::globalVariables(c(
-   ":=", ".", ".I", ".N", ".SD", "ALLOWNERS", "area",
+   ":=", ".I", ".N", ".SD", "ALLOWNERS", "area",
    "associatedCaseNumbers.x", "associatedCaseNumbers.y", "associatedContacts",
    "b_age", "b_int_age", "b_int_id", "Backcountry", "begin_date",
    "buffer_length2", "catchmentID", "CF", "ConcessionerCamping",

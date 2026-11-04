@@ -54,29 +54,29 @@
 
 list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   
-  #tables <- rvest::read_html('https://help.waterdata.usgs.gov/parameter_cd?group_cd=%') %>%
-  #  rvest::html_nodes('table') %>%
+  #tables <- rvest::read_html('https://help.waterdata.usgs.gov/parameter_cd?group_cd=%') |>
+  #  rvest::html_nodes('table') |>
   #  rvest::html_table()
   
-  #pcodes <- tables[[1]] %>%
-  #  janitor::clean_names() %>%
+  #pcodes <- tables[[1]] |>
+  #  janitor::clean_names() |>
   #  dplyr::mutate(parm_cd = stringr::str_pad(as.character(parameter_code), 5, pad = "0"))
   
-  pcodes <- dataRetrieval::parameterCdFile %>% 
-    janitor::clean_names() %>%
+  pcodes <- dataRetrieval::parameterCdFile |> 
+    janitor::clean_names() |>
     dplyr::mutate(parm_cd = stringr::str_pad(as.character(parameter_cd), 5, pad = "0"))
   
   # site_url <- 'https://maps.waterdata.usgs.gov/mapper/help/sitetype.html'
   # 
-  # table <- rvest::read_html(site_url) %>%
-  #   rvest::html_nodes('table') %>%
+  # table <- rvest::read_html(site_url) |>
+  #   rvest::html_nodes('table') |>
   #   rvest::html_table()
   # 
-  # table <- rbind(table[[1]], table[[2]], table[[3]], table[[4]], table[[5]]) %>%
+  # table <- rbind(table[[1]], table[[2]], table[[3]], table[[4]], table[[5]]) |>
   #   dplyr::select(site_type_cd = 1,
   #                 site_type = 2)
   
-  table <- dataRetrieval::read_waterdata_metadata("site-types") %>%
+  table <- dataRetrieval::read_waterdata_metadata("site-types") |>
     dplyr::select(site_type_cd = 1,
                   site_type = 3)
   
@@ -84,23 +84,23 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   if(!is.null(aoi)){
     
     # add buffer around area of interest
-    aoi_buffer <- aoi %>% 
-      sf::st_buffer(., dist = dist)
+    aoi_buffer <- aoi |> 
+      sf::st_buffer(dist = dist)
     
     gage_sites <- vector("list", length = nrow(aoi_buffer))
     
     for (i in 1:nrow(aoi_buffer)){
       
-      bbox <- sf::st_bbox(aoi_buffer[i,]) %>%
-        as.vector() %>%
-        round(., digits = 7) %>% 
+      bbox <- sf::st_bbox(aoi_buffer[i,]) |>
+        as.vector() |>
+        round(digits = 7) |> 
         paste(collapse = ",")
       
       gage_sites[[i]] <- dataRetrieval::whatNWISdata(bBox = bbox)
       
     }
     
-    gage_sites <- dplyr::bind_rows(gage_sites) %>%
+    gage_sites <- dplyr::bind_rows(gage_sites) |>
       sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269)
     
     if(sf::st_crs(aoi) != sf::st_crs(gage_sites)){
@@ -109,9 +109,9 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
       
     }
     
-    inventory <- gage_sites %>%
-      dplyr::left_join(pcodes, by = "parm_cd") %>%
-      .[aoi_buffer,] %>%
+    inventory <- gage_sites |>
+      dplyr::left_join(pcodes, by = "parm_cd") |>
+      _[aoi_buffer,] |>
       dplyr::select(c(site_no,
                       site_name = station_nm,
                       data_type_cd,
@@ -121,8 +121,8 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
                       end_date,
                       #parameter = parameter_name_description,
                       parameter = parameter_nm,
-                      code = parm_cd)) %>%
-      dplyr::left_join(.,table,by = 'site_type_cd') %>%
+                      code = parm_cd)) |>
+      dplyr::left_join(table,by = 'site_type_cd') |>
       dplyr::mutate(data_type = dplyr::case_when(data_type_cd == "dv" ~ "Daily",
                                                  data_type_cd == "uv" ~ "Unit",
                                                  data_type_cd == "qw" ~ "Water Quality",
@@ -132,8 +132,8 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
                                                  data_type_cd == "pk" ~ "Peak Measurements",
                                                  data_type_cd == "ad" ~ "USGS Annual Water Data Report",
                                                  data_type_cd == "aw" ~ "Active Groundwater Level Network",
-                                                 data_type_cd == "id" ~ "Historic Instantaneous")) %>%
-      sf::st_join(., dplyr::select(aoi_buffer))
+                                                 data_type_cd == "id" ~ "Historic Instantaneous")) |>
+      sf::st_join(dplyr::select(aoi_buffer))
     
     return(inventory)
     
@@ -150,9 +150,9 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     
     # Map over the chunks to retrieve and process NWIS data
     gage_sites <- purrr::map_dfr(site_chunks, function(chunk) {
-      dataRetrieval::whatNWISdata(siteNumber = chunk) %>%
-        sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) %>%
-        dplyr::left_join(pcodes, by = "parm_cd") %>%
+      dataRetrieval::whatNWISdata(siteNumber = chunk) |>
+        sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) |>
+        dplyr::left_join(pcodes, by = "parm_cd") |>
         dplyr::select(c(site_no,
                         site_name = station_nm,
                         data_type_cd,
@@ -163,8 +163,8 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
                         #parameter = parameter_name_description,
                         parameter = parameter_nm,
                         code = parm_cd))
-    }) %>%
-      dplyr::left_join(., table, by = 'site_type_cd') %>%
+    }) |>
+      dplyr::left_join(table, by = 'site_type_cd') |>
       dplyr::mutate(data_type = dplyr::case_when(
         data_type_cd == "dv" ~ "Daily",
         data_type_cd == "uv" ~ "Unit",
@@ -180,7 +180,7 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     # Grab NWIS sites by state code: 
   } else if(!is.null(states)){
     
-    sites <- dataRetrieval::whatNWISsites(stateCd = states) %>% .$site_no
+    sites <- dataRetrieval::whatNWISsites(stateCd = states) |> _$site_no
     
     # Check and split 'sites' into chunks if necessary
     site_chunks <- if (length(sites) > 35000) {
@@ -191,9 +191,9 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     
     # Map over the chunks to retrieve and process NWIS data
     gage_sites <- purrr::map_dfr(site_chunks, function(chunk) {
-      dataRetrieval::whatNWISdata(siteNumber = chunk) %>%
-        sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) %>%
-        dplyr::left_join(pcodes, by = "parm_cd") %>%
+      dataRetrieval::whatNWISdata(siteNumber = chunk) |>
+        sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) |>
+        dplyr::left_join(pcodes, by = "parm_cd") |>
         dplyr::select(
           c(
             site_no,
@@ -208,8 +208,8 @@ list_nwis <- function(aoi = NULL, dist, states = NULL, sites = NULL){
             code = parm_cd
           )
         )
-    }) %>%
-      dplyr::left_join(., table, by = 'site_type_cd') %>%
+    }) |>
+      dplyr::left_join(table, by = 'site_type_cd') |>
       dplyr::mutate(
         data_type = dplyr::case_when(
           data_type_cd == "dv" ~ "Daily",
