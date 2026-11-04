@@ -40,3 +40,20 @@ utils::globalVariables(c(
    "waterDistrict.x", "waterDistrict.y", "waterSource.x", "waterSource.y",
    "weight", "within_aoi", "WRNAME", "x", "X", "x.y", "y", "Y", "y.y", "Year"
 ))
+
+## Column names used by the functions ported from playground PR #165.
+utils::globalVariables(c(
+   ".component", ".data", ".date", ".group", ".in_climatology", ".value",
+   ".visitors", ".ym", "annual_high", "annual_low", "annual_mid", "cum_dist_m",
+   "cv_val", "drought_type", "dx", "dz", "elevation_m", "fraction", "max_val",
+   "mean_temp", "mean_val", "mean_vis", "mean_visitors", "min_val", "month",
+   "month_date", "month_day", "n_months", "n_years", "p10", "p10_prc", "p20",
+   "p20_prc", "p30", "p30_prc", "p50", "p50_prc", "p70", "p70_prc", "p80",
+   "p80_prc", "p90", "p90_prc", "period", "precip_in", "precip_pctile",
+   "pred_high", "pred_low", "pred_mid", "pred_raw", "pred_vis",
+   "pred_vis_residual", "raw_high", "raw_low", "raw_mid", "sd_val", "sd_vis",
+   "slope_m_per_m", "slope_pct", "swe_in", "swe_pctile", "vis", "vis_pred",
+   "vis_pred_high", "vis_pred_low", "vis_pred_se", "vis_yearly_max",
+   "vis_yearly_mean", "vis_yearly_min", "visitors_high", "visitors_low",
+   "visitors_mid", "water_year", "year", "ym"
+))

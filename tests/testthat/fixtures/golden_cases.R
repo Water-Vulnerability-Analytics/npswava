@@ -6,12 +6,16 @@
 # `fun`: the npswava function. `old_fun`: its name in the old code, if it
 #   was renamed (snake case, issue #4); make_golden.R calls that one.
 # `args` must work with both the old and the new function.
-# `needs`: "data" = the shared WaVA data folder, "internet" = a live download.
+# `needs`: "data" = the shared WaVA data folder, "internet" = a live download,
+#   "whitebox" = the WhiteboxTools binary, "forecast" = the forecast package.
 # `reads`: for a "data" case, the file or folder under the data folder it
 #   reads; the case skips without it, and its checksum goes in golden_env.csv.
 # `downloads`: what an "internet" case fetches, named in its skip reason.
 # `keep`: optional function applied to the result before it is saved or
 #   compared, for results identical() can't compare as they are.
+# `baseline`: "pr165" for a function that isn't in the pinned playground commit,
+#   so make_golden_pr165.R writes its golden file and make_golden.R leaves it
+#   out.
 #
 # Not covered, because they can't run in either version right now (see
 # README.md): get_pod_california, get_pod_nevada, get_pod_new_mexico,
@@ -283,6 +287,171 @@ golden_cases <- list(
        })
 )
 
+# Functions from playground PR #165 (npswava issue #6). They aren't in the pinned
+# commit, so these cases have their own baseline and make_golden_pr165.R writes
+# their golden files. The inputs are made up and built without random numbers,
+# so nothing depends on the shared data, a download or a seed.
+pr165_daily <- local({
+  dates <- seq(as.Date("2001-01-01"), as.Date("2010-12-31"), by = "day")
+  doy <- as.numeric(format(dates, "%j"))
+  year <- as.numeric(format(dates, "%Y"))
+  rbind(
+    data.frame(day = dates, flow = 5 + 3 * sin(2 * pi * doy / 365) + sin(year),
+               site = "upper"),
+    data.frame(day = dates, flow = 9 + 2 * cos(2 * pi * doy / 365) + cos(year),
+               site = "lower")
+  )
+})
+pr165_snow <- local({
+  dates <- seq(as.Date("1995-10-01"), as.Date("2024-09-30"), by = "day")
+  doy <- as.numeric(format(dates, "%j"))
+  year <- as.numeric(format(dates, "%Y"))
+  rbind(
+    data.frame(date = dates, name = "Upper Station",
+               CF = ifelse(year < 2015, "Historical", "Future"),
+               swe_in = pmax(0, 20 * sin(pi * (doy + 90) / 365) + 6 * sin(year * 2.7)),
+               precip_in = 30 * ((doy + 92) %% 365) / 365 + 8 * sin(year * 1.3)),
+    data.frame(date = dates, name = "Lower Station",
+               CF = ifelse(year < 2015, "Historical", "Future"),
+               swe_in = pmax(0, 8 * sin(pi * (doy + 90) / 365) + 3 * cos(year * 2.1)),
+               precip_in = 18 * ((doy + 92) %% 365) / 365 + 5 * cos(year * 0.7))
+  )
+})
+pr165_dem <- local({
+  dem <- terra::rast(xmin = 0, xmax = 1000, ymin = 0, ymax = 1000,
+                     resolution = 10, crs = "EPSG:5070")
+  cells <- seq_len(terra::ncell(dem))
+  terra::values(dem) <- 2000 + terra::yFromCell(dem, cells) / 10 +
+    abs(terra::xFromCell(dem, cells) - 500) / 20
+  dem
+})
+pr165_flowlines <- sf::st_sf(id = 1:4, geometry = sf::st_sfc(
+  sf::st_linestring(rbind(c(500, 100), c(500, 500))),
+  sf::st_linestring(rbind(c(500, 500), c(350, 700), c(200, 900))),
+  sf::st_linestring(rbind(c(800, 950), c(650, 700), c(500, 500))),
+  sf::st_linestring(rbind(c(50, 990), c(50, 950))),
+  crs = 5070
+))
+pr165_aoi <- sf::st_as_sf(sf::st_as_sfc(sf::st_bbox(
+  c(xmin = 300, ymin = 200, xmax = 700, ymax = 800), crs = sf::st_crs(5070)
+)))
+pr165_visitation <- local({
+  months <- seq(as.Date("1990-01-01"), as.Date("2060-12-01"), by = "month")
+  hist <- months[months < as.Date("2025-01-01")]
+  fut <- months[months >= as.Date("2025-01-01")]
+  out <- rbind(
+    data.frame(ym = hist, CF = "Historical", GCM = "Historical"),
+    data.frame(ym = fut, CF = "Warm Wet", GCM = "CCSM4.rcp45"),
+    data.frame(ym = fut, CF = "Hot Dry", GCM = "MIROC5.rcp85")
+  )
+  year <- as.numeric(format(out$ym, "%Y"))
+  month <- as.numeric(format(out$ym, "%m"))
+  season <- sin(2 * pi * (month - 4) / 12)
+  out$tmean_F <- 45 + 20 * season + 0.03 * (year - 1990) +
+    0.5 * sin(year * 1.3) + ifelse(out$CF == "Hot Dry", 2, 0)
+  out$visitors <- ifelse(
+    out$CF == "Historical",
+    (1000 + 800 / (1 + exp(-0.15 * (year - 2005))) + 30 * sin(year * 2.7)) *
+      (2 + season + 0.25 * cos(4 * pi * month / 12)),
+    NA
+  )
+  out
+})
+# Fitted models and plots hold environments, so compare what comes out of them
+pr165_keep_projection <- function(x) {
+  models <- intersect(names(x), c("lm_model", "gam_model", "arima_model",
+                                  "temp_model"))
+  x[models] <- lapply(x[models], stats::coef)
+  if (!is.null(x$logistic_models)) {
+    x$logistic_models <- lapply(x$logistic_models, stats::coef)
+  }
+  if (!is.null(x$gam_diagnostics)) {
+    x$gam_diagnostics <- class(x$gam_diagnostics)
+  }
+  x
+}
+pr165_keep_profile <- function(x) {
+  plot <- x$profile_plot
+  x$profile_plot <- list(
+    data = plot$data,
+    labels = plot$labels[c("title", "subtitle", "x", "y")],
+    layers = vapply(plot$layers, function(l) class(l$geom)[1], character(1))
+  )
+  x
+}
+pr165_projection_case <- function(id, ...) {
+  list(id = paste0("project_visitation_", id), fun = "project_visitation",
+       baseline = "pr165", keep = pr165_keep_projection,
+       args = list(df = pr165_visitation, visitor_col = "visitors",
+                   obs_cutoff_year = 2025, future_end_year = 2060, ...))
+}
+golden_cases <- c(golden_cases, list(
+  list(id = "calc_monthly_proportions_sum", fun = "calc_monthly_proportions",
+       baseline = "pr165",
+       args = list(df = pr165_daily[pr165_daily$site == "upper", ],
+                   date_col = "day", value_col = "flow",
+                   monthly_agg_fun = "sum")),
+  list(id = "calc_monthly_proportions_groups_windows",
+       fun = "calc_monthly_proportions", baseline = "pr165",
+       args = list(df = pr165_daily, date_col = "day", value_col = "flow",
+                   group_vars = "site", monthly_agg_fun = "mean",
+                   year_windows = list(early = c(2001, 2006),
+                                       late = c(2006, 2011)))),
+  list(id = "calc_monthly_proportions_max_min_n",
+       fun = "calc_monthly_proportions", baseline = "pr165",
+       args = list(df = pr165_daily, date_col = "day", value_col = "flow",
+                   group_vars = "site", monthly_agg_fun = "max", min_n = 11)),
+  list(id = "calc_snow_drought_season", fun = "calc_snow_drought_season",
+       baseline = "pr165",
+       args = list(df = pr165_snow[pr165_snow$name == "Upper Station", ])),
+  list(id = "calc_snow_drought_season_groups",
+       fun = "calc_snow_drought_season", baseline = "pr165",
+       args = list(df = pr165_snow, group_col = "name", window = 5,
+                   cool_season_months = c(12, 1, 2, 3))),
+  list(id = "calc_snow_drought_season_filter",
+       fun = "calc_snow_drought_season", baseline = "pr165",
+       args = list(df = pr165_snow, group_col = "name",
+                   climatology_filter = pr165_snow$CF == "Historical")),
+  list(id = "extract_mainstem_path", fun = "extract_mainstem_path",
+       baseline = "pr165",
+       args = list(flowlines = pr165_flowlines, dem = pr165_dem)),
+  list(id = "extract_stream_profile", fun = "extract_stream_profile",
+       baseline = "pr165", keep = pr165_keep_profile,
+       args = list(flowlines = pr165_flowlines, dem = pr165_dem,
+                   sample_dist = 25)),
+  list(id = "delineate_streamlines", fun = "delineate_streamlines",
+       baseline = "pr165", needs = "whitebox",
+       args = list(dem = pr165_dem, output_dir = tempfile("golden_streams"),
+                   threshold = 200)),
+  list(id = "delineate_streamlines_mainline", fun = "delineate_streamlines",
+       baseline = "pr165", needs = "whitebox",
+       args = list(dem = pr165_dem, output_dir = tempfile("golden_streams"),
+                   threshold = 200, mainline_only = TRUE,
+                   output_option = "flowlines_only", file_prefix = "main")),
+  pr165_projection_case("linear_trend", method = "linear_trend"),
+  pr165_projection_case("linear_trend_climate", method = "linear_trend",
+                        climate_vars = "tmean_F", exclude_years_lm = 2020,
+                        output_resolution = "annual"),
+  pr165_projection_case("annual_growth_rate", method = "annual_growth_rate",
+                        growth_rate_mid = 0.05, growth_rate_low = 0.03,
+                        growth_rate_high = 0.07),
+  pr165_projection_case("gam_logistic", climate_vars = "tmean_F"),
+  pr165_projection_case("gam_logistic_smooth", climate_vars = "tmean_F",
+                        smooth_terms = TRUE),
+  pr165_projection_case("gam_logistic_auto", climate_vars = "tmean_F",
+                        smooth_terms = "auto", summary_years = NULL),
+  c(pr165_projection_case("arima_climate", method = "arima_climate"),
+    list(needs = "forecast")),
+  c(pr165_projection_case("arima_climate_xreg", method = "arima_climate",
+                          climate_vars = "tmean_F"),
+    list(needs = "forecast")),
+  pr165_projection_case("fisichelli", method = "fisichelli",
+                        temp_var = "tmean_F"),
+  pr165_projection_case("fisichelli_fallback", method = "fisichelli",
+                        temp_var = "tmean_F", r2_threshold = 1.01,
+                        cap_mid_pct = 0.2, exclude_years = 2020)
+))
+
 # Files and folders in the shared data folder that the "data" cases read.
 # make_golden.R records their checksums, and test-golden.R reports it when one
 # has changed.
@@ -303,7 +472,7 @@ golden_checksum <- function(path) {
 # instead of silently dropping a skip.
 local({
   fields <- c("id", "fun", "old_fun", "args", "needs", "reads", "downloads",
-              "keep")
+              "keep", "baseline")
   for (case in golden_cases) {
     id <- if (is.character(case$id) && length(case$id) == 1) case$id else "?"
     bad <- function(...) stop("golden case ", id, ": ", ..., call. = FALSE)
@@ -318,8 +487,12 @@ local({
       bad("`old_fun` must be one function name")
     }
     if (!is.list(case$args)) bad("`args` must be a list")
-    if (!is.null(case$needs) && !all(case$needs %in% c("data", "internet"))) {
-      bad("`needs` must be \"data\", \"internet\" or both")
+    if (!is.null(case$needs) &&
+        !all(case$needs %in% c("data", "internet", "whitebox", "forecast"))) {
+      bad("`needs` must be \"data\", \"internet\", \"whitebox\" or \"forecast\"")
+    }
+    if (!is.null(case$baseline) && !identical(case$baseline, "pr165")) {
+      bad("`baseline` must be \"pr165\"")
     }
     if ("data" %in% case$needs &&
         !(is.character(case$reads) && length(case$reads) == 1)) {

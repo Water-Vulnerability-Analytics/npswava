@@ -6,7 +6,12 @@ test_that("the package exports its retrieval and analysis functions", {
                 "get_water_use_utah", "get_noaa", "get_snotel", "list_nwis",
                 "get_climate_future", "get_climate_historic",
                 "get_aoi_source", "make_ym", "calc_water_year",
-                "baseflow_eckhardt", "select_cfs_deep_dive")
+                "baseflow_eckhardt", "select_cfs_deep_dive",
+                "calc_monthly_proportions", "calc_snow_drought_season",
+                "delineate_streamlines", "extract_mainstem_path",
+                "extract_stream_profile", "project_visitation",
+                "linear_trend", "annual_growth_rate", "gam_logistic",
+                "arima_climate", "fisichelli")
   expect_true(all(expected %in% exports))
 })
 

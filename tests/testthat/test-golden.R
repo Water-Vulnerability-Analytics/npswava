@@ -32,9 +32,11 @@ data_folder_reason <- function(case) {
 # `name`; `text`), or NULL without golden_env.csv. Shown only when a case
 # fails, to point at the cause.
 golden_env_changes <- function() {
-  env_file <- file.path(golden_dir, "golden_env.csv")
-  if (!file.exists(env_file)) return(NULL)
-  env <- utils::read.csv(env_file, stringsAsFactors = FALSE)
+  env_files <- file.path(golden_dir, c("golden_env.csv", "golden_env_pr165.csv"))
+  env_files <- env_files[file.exists(env_files)]
+  if (length(env_files) == 0) return(NULL)
+  env <- unique(do.call(rbind, lapply(env_files, utils::read.csv,
+                                      stringsAsFactors = FALSE)))
   now <- vapply(seq_len(nrow(env)), function(i) {
     switch(env$item[i],
       R = as.character(getRversion()),
@@ -93,7 +95,23 @@ for (case in golden_cases) {
     golden_file <- file.path(golden_dir, paste0(case$id, ".rds"))
     skip_if_not(file.exists(golden_file),
                 paste0(case$id, ": golden file missing: ", golden_file,
-                       "; run tests/testthat/fixtures/make_golden.R"))
+                       "; run tests/testthat/fixtures/",
+                       if (identical(case$baseline, "pr165")) {
+                         "make_golden_pr165.R"
+                       } else {
+                         "make_golden.R"
+                       }))
+    if ("whitebox" %in% case$needs) {
+      skip_if_not(whitebox::check_whitebox_binary(),
+                  paste0(case$id, ": no WhiteboxTools binary at ",
+                         whitebox::wbt_exe_path(),
+                         "; run whitebox::install_whitebox()"))
+    }
+    if ("forecast" %in% case$needs) {
+      skip_if_not(requireNamespace("forecast", quietly = TRUE),
+                  paste0(case$id, ": the forecast package isn't installed ",
+                         "(it is only in Suggests)"))
+    }
     if ("data" %in% case$needs) {
       skip_if_not(file.exists(npswavacore::wava_data_path(case$reads)),
                   data_folder_reason(case))

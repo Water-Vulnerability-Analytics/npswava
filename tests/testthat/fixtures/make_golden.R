@@ -76,6 +76,9 @@ source("setup.R")
 
 source(file.path(fixtures, "golden_cases.R"))
 
+# The functions added later have their own baseline: make_golden_pr165.R
+golden_cases <- Filter(function(case) is.null(case$baseline), golden_cases)
+
 info <- c(
   paste("Written:", format(Sys.time(), "%Y-%m-%d %H:%M %Z")),
   paste("Old code: nps_water_vulnerability", golden_commit_full,
